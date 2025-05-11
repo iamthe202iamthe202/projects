@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bíblia Interativa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Estilos personalizados para ajustes finos e rolagem */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow-x: hidden; /* Evita rolagem horizontal indesejada */
+    }
+
+    #livros, #favoritos { /* Aplicando as mesmas regras de largura para ambos os painéis */
+      /* Define a largura para se ajustar ao conteúdo mais longo no painel #livros */
+      width: max-content;
+      min-width: 100px; /* Define uma largura mínima para não ficarem muito estreitos */
+      flex-shrink: 0; /* Impede que esses elementos encolham */
+      overflow-y: auto; /* Adiciona barra de rolagem se o conteúdo exceder a altura */
+      max-height: calc(100vh - 64px); /* Altura máxima, subtraindo a altura do header */
+      /* Adicionado para prevenir a seleção de texto no duplo clique */
+      user-select: none;
+      -webkit-user-select: none; /* Para navegadores baseados em WebKit */
+      -ms-user-select: none; /* Para Internet Explorer/Edge */
+      /* Adicionado para posicionar o elemento invisível sem afetar o fluxo */
+      position: relative; /* Necessário para o posicionamento absoluto do hidden-width-forcer */
+    }
+
+    /* Estilo para o elemento invisível que força a largura mínima */
+    #hidden-width-forcer {
+        visibility: hidden; /* Torna o elemento invisível */
+        height: 0; /* Remove a altura para não ocupar espaço vertical */
+        overflow: hidden; /* Esconde qualquer conteúdo que possa vazar */
+        white-space: nowrap; /* Impede que o texto quebre a linha */
+        /* Posicionamento absoluto para tirá-lo do fluxo normal, mas ainda ser considerado pelo max-content */
+        position: absolute;
+        top: 0;
+        left: 0;
+        /* Define o tamanho da fonte para que a largura corresponda à daos nomes dos livros */
+        font-size: 0.525rem; /* Deve ser o mesmo font-size dos nomes dos livros no .aba-livro */
+        padding: 0.5rem 0.75rem; /* Deve ser o mesmo padding do .aba-livro para cálculo de largura preciso */
+    }
+
+
+    #conteudo {
+      flex-grow: 1; /* Permite que o conteúdo principal ocupe o espaço restante */
+      overflow-y: auto; /* Adiciona barra de rolagem se o conteúdo exceder a altura */
+      max-height: calc(100vh - 64px); /* Altura máxima, subtraindo a altura do header */
+    }
+
+    /* Estilos para a barra de rolagem minimalista */
+    #livros::-webkit-scrollbar,
+    #favoritos::-webkit-scrollbar,
+    #conteudo::-webkit-scrollbar {
+      width: 5.6px; /* Largura da barra de rolagem reduzida em 30% (8px * 0.7 = 5.6px) */
+    }
+
+    #livros::-webkit-scrollbar-track,
+    #favoritos::-webkit-scrollbar-track,
+    #conteudo::-webkit-scrollbar-track {
+      background: #f1f1f1; /* Cor do fundo da barra de rolagem */
+      border-radius: 10px;
+    }
+
+    #livros::-webkit-scrollbar-thumb,
+    #favoritos::-webkit-scrollbar-thumb,
+    #conteudo::-webkit-scrollbar-thumb {
+      background: #888; /* Cor do "polegar" da barra de rolagem */
+      border-radius: 10px;
+    }
+
+    #livros::-webkit-scrollbar-thumb:hover,
+    #favoritos::-webkit-scrollbar-thumb:hover,
+    #conteudo::-webkit-scrollbar-thumb:hover {
+      background: #555; /* Cor do "polegar" ao passar o mouse */
+    }
+
+
+    /* Ajustes para telas menores */
+    @media (max-width: 768px) {
+      #livros, #favoritos {
+        width: 100%; /* Ocupa a largura total em telas pequenas */
+        max-height: 30vh; /* Altura reduzida em telas pequenas */
+      }
+       #conteudo {
+        max-height: 40vh; /* Altura reduzida em telas pequenas */
+      }
+       body {
+        flex-direction: column; /* Empilha as colunas em telas pequenas */
+      }
+    }
+
+    /* Estilo para o botão do capítulo ativo */
+    .capitulo.active {
+        background-color: #1e40af; /* Um azul mais escuro do Tailwind bg-blue-800 */
+        font-weight: bold;
+        color: #ffffff; /* Texto branco para contraste */
+    }
+
+    /* Mantém o destaque no hover para o botão ativo */
+    .capitulo.active:hover {
+        background-color: #1e40af; /* Mantém o mesmo azul escuro do estado ativo */
+    }
+
+    /* Estilo para os itens do painel "Abertos" (abas) */
+    .aba-livro {
+        display: flex; /* Usa flexbox para alinhar o nome e o botão de fechar */
+        justify-content: space-between; /* Espaça o nome do botão de fechar */
+        align-items: center; /* Alinha verticalmente */
+        margin-bottom: 0.25rem; /* mb-1 do Tailwind */
+        padding: 0.5rem 0.75rem; /* py-2 px-3 do Tailwind */
+        background-color: #e2e8f0; /* bg-gray-200 do Tailwind */
+        border-radius: 0.25rem; /* rounded do Tailwind */
+        cursor: grab; /* Cursor para indicar que é arrastável */
+        font-size: 0.525rem; /* Reduzido em ~30% de 0.75rem */
+        transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+        border: 1px solid #cbd5e0; /* border-gray-300 do Tailwind */
+        white-space: nowrap; /* Impede a quebra de linha no nome do livro */
+    }
+
+    .aba-livro:hover {
+        background-color: #cbd5e0; /* bg-gray-300 do Tailwind */
+    }
+
+    /* Estilo para a aba de livro ativa no painel "Abertos" */
+    .aba-livro.active-aba {
+        background-color: #bfdbfe; /* Um azul claro do Tailwind bg-blue-200 */
+        border-color: #93c5fd; /* border-blue-300 do Tailwind */
+    }
+
+
+     .aba-livro .fechar {
+        margin-left: 0.5rem; /* ml-2 do Tailwind */
+        color: #ef4444; /* text-red-500 do Tailwind */
+        font-weight: normal; /* Remove negrito */
+        font-size: 0.75rem; /* text-xs do Tailwind */
+        cursor: pointer; /* Cursor padrão para o botão de fechar */
+     }
+
+     .aba-livro .fechar:hover {
+         color: #dc2626; /* text-red-700 do Tailwind */
+     }
+
+     /* Estilo para o elemento sendo arrastado */
+     .aba-livro.dragging {
+         opacity: 0.5;
+         border: 1px dashed #3b82f6; /* border-blue-500 do Tailwind */
+         background-color: #bfdbfe; /* bg-blue-200 do Tailwind */
+     }
+
+     /* Estilo para os botões de navegação de capítulo */
+     .chapter-nav-button {
+         padding: 0.5rem 1rem;
+         background-color: #3b82f6; /* bg-blue-500 */
+         color: white;
+         border-radius: 9999px; /* rounded-full */
+         cursor: pointer;
+         transition: background-color 200ms ease-in-out;
+         font-size: 1.25rem; /* text-xl */
+         font-weight: bold;
+     }
+
+     .chapter-nav-button:hover {
+         background-color: #2563eb; /* bg-blue-600 */
+     }
+
+     .chapter-nav-button.disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+     }
+
+     /* Estilo para os nomes dos livros no painel esquerdo */
+     #livros .livro {
+        font-size: 0.6125rem; /* Reduzido em ~30% de 0.875rem */
+        white-space: nowrap; /* Impede a quebra de linha no nome do livro */
+     }
+
+    /* Estilos para o Modal (Popup) */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* Garante que fique acima de outros elementos */
+        visibility: hidden; /* Inicialmente invisível */
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 80%;
+        max-height: 80%;
+        overflow-y: auto; /* Adiciona rolagem se o conteúdo for grande */
+        position: relative; /* Necessário para o botão de fechar */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content .modal-header {
+        display: flex;
+        flex-direction: column; /* Empilha título e área de filtro */
+        align-items: center; /* Centraliza horizontalmente */
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .modal-content .modal-header h4 {
+        margin: 0; /* Remove margem padrão do h4 */
+        margin-bottom: 10px; /* Espaço entre o título e a área de filtro */
+    }
+
+     .modal-content .filter-area {
+        display: flex;
+        justify-content: center; /* Centraliza os grupos de filtro */
+        gap: 20px; /* Espaço entre os grupos de filtro */
+     }
+
+    .modal-content .filter-option button {
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        /* Estilo do botão azul */
+        background-color: #3b82f6; /* bg-blue-500 */
+        color: white; /* Texto branco */
+        transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+        font-size: 0.875rem; /* text-sm */
+    }
+
+    .modal-content .filter-option button:hover {
+        background-color: #2563eb; /* bg-blue-600 */
+        border-color: #2563eb;
+    }
+
+    .modal-content .filter-option button.active-filter {
+        background-color: #1e40af; /* Um azul mais escuro para o ativo */
+        border-color: #1e40af;
+    }
+
+     .modal-content .filter-option {
+        display: flex;
+        flex-direction: column; /* Empilha botão e contagem */
+        align-items: center; /* Centraliza horizontalmente o botão e a contagem */
+     }
+
+     .modal-content .count {
+        margin-top: 4px; /* Espaço entre o botão e a contagem */
+        font-size: 0.875rem; /* text-sm */
+        color: #6b7280; /* text-gray-600 */
+     }
+
+
+    .modal-content .verse-result {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start; /* Alinha o texto do versículo no topo */
+    }
+
+     .modal-content .verse-result:last-child {
+         border-bottom: none; /* Remove a borda do último item */
+     }
+
+    .modal-content .verse-info {
+        flex-grow: 1; /* Permite que as informações do versículo ocupem o espaço */
+        margin-right: 10px; /* Espaço entre o texto e o botão */
+    }
+
+    .modal-content .verse-info strong {
+        color: #3b82f6; /* Cor azul para o número do versículo */
+    }
+
+    /* Estilo para a palavra destacada na busca */
+    .modal-content .verse-info strong {
+        font-weight: bold; /* Garante que o negrito seja aplicado */
+        color: inherit; /* Mantém a cor do texto original */
+    }
+
+
+    .modal-content .open-verse-button {
+        background-color: #3b82f6; /* bg-blue-500 */
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        white-space: nowrap; /* Impede que o texto do botão quebre a linha */
+    }
+
+    .modal-content .open-verse-button:hover {
+        background-color: #2563eb; /* bg-blue-600 */
+    }
+
+    /* Estilo para o contêiner do versículo para posicionamento relativo */
+    .verse {
+        position: relative; /* Permite posicionar o botão de cópia absolutamente dentro dele */
+        padding-right: 30px; /* Reduzido para dar espaço ao botão pequeno */
+    }
+
+    /* Estilo para o botão de copiar versículo (CSS-only icon) */
+    .copy-verse-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 20px; /* Tamanho do botão reduzido */
+        height: 20px; /* Tamanho do botão reduzido */
+        padding: 0;
+        visibility: hidden; /* Inicialmente invisível */
+        opacity: 0; /* Completamente transparente por padrão */
+        transition: opacity 0.2s ease-in-out;
+        /* Posicionamento absoluto no canto inferior direito */
+        position: absolute;
+        bottom: 5px; /* Distância do fundo */
+        right: 5px; /* Distância da direita */
+        z-index: 10; /* Garante que fique acima do texto */
+        display: flex; /* Usa flexbox para centralizar o ícone CSS */
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Estilo para o ícone de cópia (duas folhas) usando pseudo-elementos */
+    .copy-verse-button::before,
+    .copy-verse-button::after {
+        content: '';
+        position: absolute;
+        width: 50%; /* Tamanho relativo das "folhas" */
+        height: 60%; /* Tamanho relativo das "folhas" */
+        border: 1px solid #9ca3af; /* Cor da borda mais clara (text-gray-400) para ser mais singelo */
+        background-color: white; /* Fundo branco */
+        box-sizing: border-box; /* Inclui borda no tamanho */
+    }
+
+    .copy-verse-button::before {
+        /* A folha de trás */
+        top: 20%; /* Posição */
+        left: 20%; /* Posição */
+        z-index: 1;
+    }
+
+    .copy-verse-button::after {
+        /* A folha da frente */
+        top: 10%; /* Posição */
+        left: 10%; /* Posição */
+        z-index: 2;
+    }
+
+    /* Estilo para os botões de filtro AT/NT */
+    .filter-button {
+        padding: 0.3rem 0.6rem; /* Reduzido em ~40% do padding original */
+        background-color: #e2e8f0; /* bg-gray-200 */
+        color: #4a5568; /* text-gray-700 */
+        border-radius: 0.25rem; /* rounded */
+        cursor: pointer;
+        transition: background-color 200ms ease-in-out;
+        font-size: 0.75rem; /* Reduzido em ~40% do font-size original (0.875rem * 0.6 = 0.525, arredondado para 0.75 para legibilidade) */
+        font-weight: bold;
+    }
+
+    .filter-button:hover {
+        background-color: #cbd5e0; /* bg-gray-300 */
+    }
+
+    .filter-button.active-filter-button {
+        background-color: #3b82f6; /* bg-blue-500 */
+        color: white;
+    }
+
+
+    /* Estilo para o campo de busca dentro do modal */
+    #modal-search-input {
+        border: 1px solid #ccc; /* Contorno cinza padrão */
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    #modal-search-input:focus {
+        border-color: #3b82f6; /* Cor da borda azul no foco */
+        outline: none; /* Remove o outline padrão do navegador */
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Adiciona uma sombra azul sutil no foco */
+    }
+
+
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <header class="bg-blue-700 text-white p-4 shadow-md flex items-center justify-between">
+    <h1 id="main-heading" class="text-2xl font-bold">Bíblia Interativa</h1>
+    <div class="flex items-center">
+        <input type="text" id="search-input" placeholder="Buscar na Bíblia..." class="p-2 rounded-md text-gray-800 mr-2">
+        <button id="search-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-200 ease-in-out">Buscar</button>
+    </div>
+  </header>
+
+  <div class="flex flex-col md:flex-row flex-grow">
+    <div id="livros" class="bg-white p-4 border-r border-gray-200 md:h-screen">
+        <div class="flex gap-2 mb-4">
+            <button id="filter-ot-books" class="filter-button" data-testament="old">AT</button>
+            <button id="filter-nt-books" class="filter-button" data-testament="new">NT</button>
+        </div>
+      <div id="listaLivros">
+      </div>
+      </div>
+
+    <div id="conteudo" class="flex-grow bg-gray-50 p-4 md:h-screen">
+      <div id="capitulosContainer" class="flex flex-wrap gap-2 mb-4 border-b pb-4 border-gray-200">
+        </div>
+      <div id="versiculos">
+        </div>
+    </div>
+
+    <div id="favoritos" class="bg-white p-4 border-l border-gray-200 md:h-screen">
+      <h4 class="font-semibold mb-4">Abertos</h4>
+      <span id="hidden-width-forcer">2 Tessalonicenses</span> </div>
+  </div>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+      <div id="search-modal-content" class="modal-content">
+          <div class="modal-header">
+              <h4 class="text-xl font-semibold">Resultados da Busca</h4>
+              <div class="flex items-center mb-4">
+                  <input type="text" id="modal-search-input" placeholder="Nova busca..." class="p-2 rounded-md text-gray-800 mr-2">
+                  <button id="modal-search-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-200 ease-in-out">Buscar</button>
+              </div>
+              <div class="filter-area">
+                  <div class="filter-option">
+                      <button id="filter-nt" data-scope="new">No Novo Testamento</button>
+                      <span id="count-nt" class="count">(0)</span>
+                  </div>
+                  <div class="filter-option">
+                      <button id="filter-ot" data-scope="old">No Antigo Testamento</button>
+                      <span id="count-ot" class="count">(0)</span>
+                  </div>
+                  <div class="filter-option">
+                      <button id="filter-all" data-scope="all">Na Bíblia Toda</button>
+                      <span id="count-all" class="count">(0)</span>
+                  </div>
+              </div>
+          </div>
+          <div id="search-results-container">
+              </div>
+      </div>
+  </div>
+
+
+  <script>
+    let bibliaData = [];
+    let livros = [];
+    // Array para armazenar os livros abertos como objetos { id, book, chapter, scrollToVerse }
+    const abertoTabs = [];
+    // Objeto para armazenar o estado (capítulo atual e posição de rolagem) de cada livro, indexado pelo nome do livro
+    const livroState = {};
+    let livroAtual = null; // Variável para rastrear o livro atualmente exibido
+    let activeTabId = null; // Variável para rastrear o ID da aba ativa
+    let draggedItem = null; // Variável para rastrear o elemento sendo arrastado
+
+
+    // Referências aos elementos de título e busca
+    const pageTitle = document.querySelector('title');
+    const mainHeading = document.getElementById('main-heading');
+    const searchInput = document.getElementById('search-input'); // Busca do cabeçalho
+    const searchButton = document.getElementById('search-button'); // Botão de busca do cabeçalho
+    const searchModalOverlay = document.getElementById('search-modal-overlay');
+    const searchResultsContainer = document.getElementById('search-results-container');
+    const conteudoDiv = document.getElementById('conteudo'); // Referência ao div de conteúdo
+    const listaLivrosDiv = document.getElementById('listaLivros'); // Referência ao div que conterá a lista de livros
+
+
+    // Referências aos elementos de busca DENTRO do modal
+    const modalSearchInput = document.getElementById('modal-search-input');
+    const modalSearchButton = document.getElementById('modal-search-button');
+
+
+    // Referências aos botões de filtro de busca no modal e elementos de contagem
+    const filterNtButton = document.getElementById('filter-nt');
+    const filterOtButton = document.getElementById('filter-ot');
+    const filterAllButton = document.getElementById('filter-all');
+    const countNtSpan = document.getElementById('count-nt');
+    const countOtSpan = document.getElementById('count-ot');
+    const countAllSpan = document.getElementById('count-all');
+
+    // Referências aos botões de filtro de livros no painel esquerdo
+    const filterOtBooksButton = document.getElementById('filter-ot-books');
+    const filterNtBooksButton = document.getElementById('filter-nt-books');
+
+
+    // Lista de livros do Novo Testamento (em português)
+    const newTestamentBooks = [
+        "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios",
+        "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses",
+        "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo",
+        "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João",
+        "2 João", "3 João", "Judas", "Apocalipse"
+    ];
+
+    let currentSearchScope = 'new'; // Escopo de busca inicial: Novo Testamento
+    let currentBookFilter = 'new'; // Filtro de livros inicial: Novo Testamento
+
+
+    // Função auxiliar para remover acentos de uma string
+    function removeAccents(str) {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Função auxiliar para construir um padrão de regex insensível a acentos
+    function buildAccentInsensitiveRegexPattern(term) {
+        const replacements = {
+            'a': '[aáàãâä]',
+            'e': '[eéèêë]',
+            'i': '[iíìîï]',
+            'o': '[oóòõôö]',
+            'u': '[uúùûü]',
+            'c': '[cç]',
+            // Adicione outros caracteres com acentos conforme necessário
+            // Ex: 'n': '[nñ]' se houver palavras com 'ñ'
+        };
+        let pattern = '';
+        for (const char of term.toLowerCase()) {
+            pattern += replacements[char] || char; // Usa replacement if exists, otherwise use original char
+        }
+        return pattern;
+    }
+
+
+    // Carrega os dados da Bíblia
+    fetch('https://raw.githubusercontent.com/iamthe202iamthe202/projects/refs/heads/main/dados_biblia_com_nomes_corrigido.json')
+      .then(response => response.json())
+      .then(data => {
+        bibliaData = data;
+        livros = [...new Set(bibliaData.map(verso => verso.book_name))];
+        // Exibe os livros do Novo Testamento por padrão ao carregar
+        exibirLivros('new');
+        atualizarPainelAbertos(); // Garante que o painel "Abertos" seja exibido ao carregar
+
+        // Abre o livro de Mateus, capítulo 1, por padrão ao carregar
+        abrirLivroNoCentro("Mateus", 1, null, false); // Passa null para tabId e false para restoreScroll
+
+      })
+      .catch(error => {
+        console.error('Erro ao carregar os dados da Bíblia:', error);
+        document.getElementById('conteudo').innerHTML = '<p class="text-red-500">Erro ao carregar os dados. Por favor, tente novamente mais tarde.</p>';
+      });
+
+    // Função para abrir um livro e capítulo no painel central
+    // Adicionado o parâmetro restoreScroll para controlar se a posição de rolagem deve ser restaurada
+    function abrirLivroNoCentro(livro, capitulo, tabId = null, restoreScroll = true) {
+        console.log("Chamando abrirLivroNoCentro com:", { livro, capitulo, tabId, restoreScroll }); // Log para debug
+
+         // --- Salvar a posição de rolagem do livro atual antes de mudar ---
+        if (livroAtual && conteudoDiv) {
+            livroState[livroAtual] = livroState[livroAtual] || {}; // Garante que o objeto existe
+            livroState[livroAtual].scrollTop = conteudoDiv.scrollTop;
+            console.log(`Posição de rolagem salva para ${livroAtual}: ${conteudoDiv.scrollTop}`); // Log de salvamento
+        }
+        // --- Fim do salvamento da posição de rolagem ---
+
+
+        livroAtual = livro; // Define o novo livro atual
+        activeTabId = tabId; // Define a aba ativa pelo ID
+
+        // Remove a classe 'active-aba' de todas as abas
+        document.querySelectorAll('.aba-livro').forEach(aba => {
+            aba.classList.remove('active-aba');
+        });
+
+        // Adiciona a classe 'active-aba' à aba do livro atualmente ativo
+        if (activeTabId !== null) {
+            const abaAtual = document.querySelector(`.aba-livro[data-tab-id="${activeTabId}"]`);
+            if (abaAtual) {
+                abaAtual.classList.add('active-aba');
+            }
+        }
+
+        // Encontra a aba ativa para obter o scrollToVerse, se existir
+        const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+        console.log("activeTab encontrado:", activeTab); // Log para debug
+
+        // Verifica se activeTab existe antes de tentar aceder a scrollToVerse
+        let scrollToVerse = null;
+        if (activeTab) { // Verifica se activeTab não é undefined ou null
+            scrollToVerse = activeTab.scrollToVerse;
+        }
+
+
+        // Determina qual capítulo exibir: o passado como parâmetro ou o capítulo salvo no estado do livro
+        const chapterToDisplay = capitulo !== undefined ? capitulo : (livroState[livro] ? livroState[livro].currentChapter : 1);
+         // Atualiza o capítulo no estado do livro (se não for uma navegação específica por capítulo)
+        livroState[livro] = livroState[livro] || {};
+        livroState[livro].currentChapter = chapterToDisplay;
+
+
+        exibirCapitulos(livro);
+        // Passa o parâmetro restoreScroll para exibirVersiculos
+        exibirVersiculos(livro, chapterToDisplay, scrollToVerse, restoreScroll);
+
+         // A atualização do capítulo no objeto da aba ativa SOMENTE se activeTab existir
+         // já foi movida para antes da chamada de exibirCapitulos/exibirVersiculos
+        atualizarPainelAbertos(); // Redesenha o painel para atualizar o texto da aba
+    }
+
+
+    // Exibe a lista de livros com base no filtro (old ou new)
+    function exibirLivros(filter = 'all') {
+      listaLivrosDiv.innerHTML = ''; // Limpa a lista anterior
+
+      let livrosFiltrados = [];
+      if (filter === 'new') {
+          livrosFiltrados = livros.filter(livro => newTestamentBooks.includes(livro));
+      } else if (filter === 'old') {
+          livrosFiltrados = livros.filter(livro => !newTestamentBooks.includes(livro));
+      } else { // 'all' ou nenhum filtro especificado
+          livrosFiltrados = livros;
+      }
+
+      livrosFiltrados.forEach(livro => {
+        const div = document.createElement('div');
+        div.textContent = livro;
+        // Adiciona classes Tailwind para estilização dos itens da lista de livros
+        // A classe de tamanho de fonte é adicionada no CSS
+        div.className = 'livro cursor-pointer p-2 hover:bg-blue-100 rounded-md transition duration-200 ease-in-out';
+         // Adiciona um atributo de dados para facilitar a identificação do livro
+        div.setAttribute('data-livro', livro);
+
+
+        // Clique único: Abre o livro no centro (não adiciona aba)
+        div.onclick = () => {
+            // Ao clicar uma vez, abre o livro no centro, mas sem adicionar uma nova aba
+            // Isso não muda a lista de abas abertas.
+            // Passa null para tabId e false para restoreScroll
+            abrirLivroNoCentro(livro, 1, null, false); // Abre no capítulo 1 por padrão, não restaura rolagem
+        };
+
+        // Duplo clique: Abre o livro no centro E adiciona ao painel "Abertos"
+        div.ondblclick = (event) => {
+            event.preventDefault(); // Previne a seleção de texto padrão do duplo clique
+
+            // Cria um novo objeto de aba com um ID único e capítulo inicial 1
+            const newTabId = Date.now(); // Usando timestamp como ID único simples
+            // Ao abrir por duplo clique, não há um versículo específico para rolar
+            const newTab = { id: newTabId, book: livro, chapter: 1, scrollToVerse: null };
+            abertoTabs.push(newTab); // Adiciona à lista de abas abertas
+
+            // Define a nova aba como ativa e abre o livro/capítulo correspondente
+            // Passa newTabId e false para restoreScroll (abrir no topo ao adicionar nova aba)
+            abrirLivroNoCentro(livro, 1, newTabId, false);
+
+            // Atualiza o painel de abas abertas para exibir a nova aba
+            atualizarPainelAbertos();
+        };
+        listaLivrosDiv.appendChild(div); // Adiciona ao novo container de lista
+      });
+
+      // Atualiza o destaque dos botões de filtro de livros
+      highlightBookFilterButton(filter);
+      currentBookFilter = filter; // Atualiza o filtro de livros atual
+    }
+
+    // Função para destacar o botão de filtro de livros ativo
+    function highlightBookFilterButton(filter) {
+        // Remove a classe 'active-filter-button' de todos os botões de filtro de livros
+        filterOtBooksButton.classList.remove('active-filter-button');
+        filterNtBooksButton.classList.remove('active-filter-button');
+
+        // Adiciona a classe 'active-filter-button' ao botão correspondente ao filtro
+        if (filter === 'old') {
+            filterOtBooksButton.classList.add('active-filter-button');
+        } else if (filter === 'new') {
+            filterNtBooksButton.classList.add('active-filter-button');
+        }
+        // Não há destaque para 'all' neste caso, pois só temos botões para AT e NT
+    }
+
+
+    // Exibe os botículos de capítulos para um livro selecionado
+    function exibirCapitulos(livro) {
+      const container = document.getElementById('capitulosContainer');
+      container.innerHTML = ''; // Limpa os capítulos anteriores
+
+      const capitulos = [...new Set(bibliaData
+        .filter(verso => verso.book_name === livro)
+        .map(verso => verso.chapter))].sort((a, b) => a - b); // Garante que os capítulos estejam ordenados
+
+      capitulos.forEach(capitulo => {
+        const span = document.createElement('span');
+        span.textContent = capitulo;
+        // Modificado as classes Tailwind para um visual mais moderno e sutil
+        span.className = 'capitulo cursor-pointer px-3 py-1 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition duration-200 ease-in-out text-sm';
+        // Ao clicar no capítulo, chama abrirLivroNoCentro com o livro atual, o novo capítulo e o ID da aba ativa
+        span.onclick = () => {
+            // Encontra a aba ativa e limpa o scrollToVerse antes de mudar de capítulo
+            const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+            if (activeTab) {
+                activeTab.scrollToVerse = null;
+            }
+            // Passa activeTabId e false para restoreScroll (clicar num capítulo rola para o topo)
+            abrirLivroNoCentro(livroAtual, capitulo, activeTabId, false);
+        };
+        container.appendChild(span);
+      });
+    }
+
+    // Exibe os versículos de um capítulo selecionado
+    // Adicionado o parâmetro restoreScroll
+    function exibirVersiculos(livro, capitulo, scrollToVerse = null, restoreScroll = true) {
+      const versiculosDiv = document.getElementById('versiculos');
+      versiculosDiv.innerHTML = ''; // Limpa os versículos anteriores
+
+      const versiculos = bibliaData
+        .filter(verso => verso.book_name === livro && verso.chapter === capitulo);
+
+      versiculos.forEach(verso => {
+        const div = document.createElement('div');
+        // Adiciona a classe 'verse' para facilitar a seleção e o hover
+        // Removido flexbox daqui, pois o botão será posicionado absolutamente
+        div.className = 'verse versiculo mb-2 p-3 bg-white rounded-lg shadow-sm';
+        // Adiciona o atributo data-verse-number para facilitar a localização
+        div.setAttribute('data-verse-number', verso.verse);
+        // Adiciona atributos para armazenar o livro e capítulo para facilitar a cópia múltipla
+        div.setAttribute('data-book-name', verso.book_name);
+        div.setAttribute('data-chapter', verso.chapter);
+
+
+        const verseContent = document.createElement('div');
+        // Removido flex-grow daqui, pois o botão não está mais no fluxo normal
+        verseContent.className = 'verse-content';
+        verseContent.innerHTML = `<strong class="text-blue-700">${verso.verse}</strong> - ${verso.text}`; // Destaca o número do versículo
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-verse-button'; // Usa apenas a classe para estilo e posicionamento
+        copyButton.title = 'Copiar versículo'; // Tooltip alterado para singular
+
+
+        // Adiciona o evento de clique para copiar o versículo (sempre único agora)
+        copyButton.onclick = async (event) => {
+            event.stopPropagation(); // Impede que o clique no botão propague para o elemento pai (.verse)
+            const bookName = verso.book_name;
+            const chapter = verso.chapter;
+            const verseNumber = verso.verse;
+
+            // Copia apenas o texto do versículo, sem o número inicial
+            const verseTextOnly = verseContent.textContent.replace(/^\d+\s-\s/, '').trim();
+            const textToCopy = `"${verseTextOnly}" ${bookName} ${chapter}:${verseNumber}`;
+
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                // Feedback visual
+                const originalInnerHtml = copyButton.innerHTML; // Salva o conteúdo original (ícone CSS)
+                copyButton.innerHTML = '✔️'; // Altera para um checkmark
+                copyButton.style.opacity = '1'; // Garante que o checkmark seja visível
+
+                // Restaura o ícone original após um tempo
+                setTimeout(() => {
+                    copyButton.innerHTML = originalInnerHtml; // Restaura o ícone CSS
+                     // A opacidade e visibilidade serão gerenciadas por handleTextSelection/hover
+                }, 1500); // 1.5 segundos
+
+            } catch (err) {
+                console.error('Erro ao copiar o texto:', err); // Log de erro
+                // Opcional: feedback de erro para o usuário
+                 // Feedback visual de erro
+                 copyButton.textContent = '❌'; // Altera para um X
+                 copyButton.style.opacity = '1';
+                 setTimeout(() => {
+                     // Restaura o ícone original após um tempo
+                     // Para o botão de cópia única, o ícone é gerado por pseudo-elementos CSS,
+                     // então basta remover o texto e deixar o CSS agir.
+                     copyButton.textContent = '';
+                      // A opacidade e visibilidade serão gerenciadas por handleTextSelection/hover
+                 }, 1500);
+            }
+        };
+
+
+        div.appendChild(verseContent); // Adiciona o conteúdo do versículo
+        div.appendChild(copyButton); // Adiciona o botão de copiar
+
+        // --- Adiciona o manipulador de clique para pesquisa com Shift ---
+        div.addEventListener('click', (event) => {
+            console.log("Clique detectado no versículo."); // Log: Clique no versículo detectado
+
+            // Verifica se a tecla Shift foi pressionada durante o clique
+            if (event.shiftKey) {
+                console.log("Shift key pressionada."); // Log: Shift pressionado
+
+                // Explicitamente limpa qualquer seleção existente
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                    console.log("Seleção existente limpa."); // Log: Seleção limpa
+                }
+
+
+                 // Previne o comportamento padrão do navegador (seleção de texto)
+                event.preventDefault();
+                console.log("event.preventDefault() chamado."); // Log: Prevenção padrão chamada
+
+                let clickedWord = null;
+
+                // Usa elementFromPoint para obter o elemento no ponto do clique
+                const clickedElement = document.elementFromPoint(event.clientX, event.clientY);
+                console.log("Elemento clicado:", clickedElement); // Log: Elemento clicado
+
+                // Verifica se o elemento clicado está dentro de um versículo
+                const verseElement = findAncestorWithClass(clickedElement, 'verse');
+
+                if (verseElement) {
+                    console.log("Clique dentro de um elemento de versículo."); // Log: Dentro do versículo
+
+                    // Itera sobre todos os nós filhos do verseElement para encontrar nós de texto
+                    const walker = document.createTreeWalker(verseElement, NodeFilter.SHOW_TEXT, null, false);
+                    let node;
+
+                    while ((node = walker.nextNode())) {
+                        const text = node.textContent;
+                        const wordRegex = /\b\w+\b/g;
+                        let match;
+
+                        // Reinicia a busca regex para cada nó de texto
+                        wordRegex.lastIndex = 0;
+
+                        // Itera sobre as palavras no nó de texto
+                        while ((match = wordRegex.exec(text)) !== null) {
+                            const word = match[0];
+                            const wordStart = match.index;
+                            const wordEnd = wordRegex.lastIndex;
+
+                            // Cria um range para a palavra atual
+                            const range = document.createRange();
+                            range.setStart(node, wordStart);
+                            range.setEnd(node, wordEnd);
+
+                            // Obtém as coordenadas da palavra
+                            const rects = range.getClientRects();
+
+                            // Verifica se as coordenadas do clique estão dentro de qualquer um dos retângulos da palavra
+                            for (const rect of rects) {
+                                // Adiciona uma pequena margem (tolerância) para cliques próximos às bordas da palavra
+                                const tolerance = 2; // Ajuste este valor conforme necessário
+                                if (event.clientX >= rect.left - tolerance && event.clientX <= rect.right + tolerance &&
+                                    event.clientY >= rect.top - tolerance && event.clientY <= rect.bottom + tolerance) {
+                                    clickedWord = word;
+                                    console.log("Palavra identificada com tolerância:", clickedWord); // Log: Palavra identificada com tolerância
+                                    break; // Palavra encontrada, sai do loop de retângulos
+                                }
+                            }
+
+                            if (clickedWord) {
+                                break; // Palavra encontrada, sai do loop de palavras
+                            }
+                        }
+
+                        if (clickedWord) {
+                            break; // Palavra encontrada, sai do loop de nós de texto
+                        }
+                    }
+
+
+                    if (clickedWord) {
+                        console.log("Palavra clicada identificada:", clickedWord); // Log: Palavra identificada
+                        // Abre uma nova aba com a pesquisa no Google
+                        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(clickedWord)}`;
+                        console.log("Abrindo pesquisa do Google para:", searchUrl); // Log: URL da pesquisa
+                        window.open(searchUrl, '_blank'); // Abre em uma nova aba
+                    } else {
+                        console.log("Não foi possível identificar a palavra clicada dentro do versículo."); // Log: Palavra não identificada
+                    }
+
+                } else {
+                    console.log("Clique fora de um elemento de versículo."); // Log: Fora do versículo
+                }
+            } else {
+                 console.log("Shift key NÃO pressionada."); // Log: Shift não pressionado
+            }
+        });
+        // --- Fim do manipulador de clique para pesquisa com Shift ---
+
+
+        versiculosDiv.appendChild(div);
+      });
+
+      // --- Início da Lógica de Navegação por Capítulo ---
+
+      const capitulosDoLivro = [...new Set(bibliaData
+        .filter(verso => verso.book_name === livro)
+        .map(verso => verso.chapter))].sort((a, b) => a - b); // Garante que os capítulos estejam ordenados
+
+      const indexCapituloAtual = capitulosDoLivro.indexOf(capitulo);
+      const capituloAnterior = indexCapituloAtual > 0 ? capitulosDoLivro[indexCapituloAtual - 1] : null;
+      const capituloSeguinte = indexCapituloAtual < capitulosDoLivro.length - 1 ? capitulosDoLivro[indexCapituloAtual + 1] : null;
+
+      const navContainer = document.createElement('div');
+      navContainer.className = 'flex justify-between mt-4'; // Flexbox para alinhar botões, margem superior
+
+      // Botão de Capítulo Anterior
+      const prevButton = document.createElement('span');
+      prevButton.textContent = '← Anterior'; // Seta para a esquerda e texto
+      prevButton.className = 'chapter-nav-button';
+      if (capituloAnterior !== null) {
+          prevButton.onclick = () => {
+               // Encontra a aba ativa e limpa o scrollToVerse antes de mudar de capítulo
+                const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                if (activeTab) {
+                    activeTab.scrollToVerse = null;
+                }
+              // Passa false para restoreScroll para rolar para o topo
+              abrirLivroNoCentro(livro, capituloAnterior, activeTabId, false);
+          };
+      } else {
+          prevButton.classList.add('disabled'); // Adiciona classe para desabilitar visualmente
+      }
+      navContainer.appendChild(prevButton);
+
+      // Botão de Capítulo Seguinte
+      const nextButton = document.createElement('span');
+      nextButton.textContent = 'Próximo →'; // Seta para a direita e texto
+      nextButton.className = 'chapter-nav-button';
+      if (capituloSeguinte !== null) {
+          nextButton.onclick = () => {
+               // Encontra a aba ativa e limpa o scrollToVerse antes de mudar de capítulo
+                const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                if (activeTab) {
+                    activeTab.scrollToVerse = null;
+                }
+              // Passa false para restoreScroll para rolar para o topo
+              abrirLivroNoCentro(livro, capituloSeguinte, activeTabId, false);
+          };
+      } else {
+          nextButton.classList.add('disabled'); // Adiciona classe para desabilitar visualmente
+      }
+      navContainer.appendChild(nextButton);
+
+      versiculosDiv.appendChild(navContainer); // Adiciona o container de navegação ao final dos versículos
+
+      // --- Fim da Lógica de Navegação por Capítulo ---
+
+
+      // Atualiza o capítulo atual no estado do livro (mantido por livro, não por aba)
+      livroState[livro] = livroState[livro] || {}; // Garante que o objeto existe
+      livroState[livro].currentChapter = capitulo;
+
+      // Destaca o botão do capítulo ativo
+      const capitulosContainer = document.getElementById('capitulosContainer');
+      const capituloBotoes = capitulosContainer.querySelectorAll('.capitulo');
+      capituloBotoes.forEach(botao => {
+          // Remove a classe 'active' de todos os botões
+          botao.classList.remove('active', 'bg-blue-800');
+           // Restaura as classes de fundo e texto padrão para inativos
+          botao.classList.add('bg-gray-200', 'text-gray-700');
+          botao.classList.remove('bg-blue-500', 'text-white'); // Remove classes antigas se ainda existirem
+      });
+
+      // Encontra o botão do capítulo atual e adiciona a classe 'active'
+      const botaoAtivo = Array.from(capituloBotoes).find(botao => parseInt(botao.textContent) === capitulo);
+      if (botaoAtivo) {
+          botaoAtivo.classList.add('active', 'bg-blue-800', 'text-white'); // Adiciona classes para ativo
+          botaoAtivo.classList.remove('bg-gray-200', 'text-gray-700'); // Remove classes de inativo
+      }
+
+
+      // Restaura a posição de rolagem após carregar os versículos
+      // Usa um pequeno atraso para garantir que o conteúdo foi renderizado
+      setTimeout(() => {
+          if (conteudoDiv) { // Verifica se o elemento existe
+              // Define o comportamento de rolagem para 'auto' (instantâneo) antes de definir o scrollTop
+              conteudoDiv.style.scrollBehavior = 'auto';
+
+              // Lógica de rolagem: prioriza scrollToVerse (busca), depois restaura se restoreScroll for true, senão rola para o topo
+              if (scrollToVerse !== null) {
+                  const targetVerseElement = versiculosDiv.querySelector(`[data-verse-number="${scrollToVerse}"]`);
+                  if (targetVerseElement) {
+                      // Rola para o topo da área de conteúdo
+                      targetVerseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      console.log(`Rolando para o versículo ${scrollToVerse}`); // Log de rolagem para versículo
+                  } else {
+                      // Se o versículo específico não foi encontrado (ex: erro nos dados), rola para o topo
+                       conteudoDiv.scrollTop = 0;
+                       console.log("Versículo para rolar não encontrado, rolou para o topo."); // Log de fallback
+                  }
+              } else if (restoreScroll && livroState[livro] && livroState[livro].scrollTop !== undefined) {
+                  // Restaura a posição de rolagem salva para este livro SOMENTE se restoreScroll for true
+                  conteudoDiv.scrollTop = livroState[livro].scrollTop;
+                  console.log(`Restaurando posição de rolagem para ${livro}: ${livroState[livro].scrollTop}`); // Log de restauração
+              } else {
+                   // Rola para o topo se não houver scrollToVerse E restoreScroll for false OU não houver posição salva
+                   conteudoDiv.scrollTop = 0; // Rola para o topo
+                   console.log("Sem versículo para rolar ou posição salva/restoreScroll false, rolou para o topo."); // Log de topo padrão
+              }
+
+              // Opcional: redefinir o comportamento de rolagem para 'smooth' se desejar rolagem suave para interações do usuário
+              /* conteudoDiv.style.scrollBehavior = 'smooth'; */
+          }
+      }, 300); // Atraso aumentado para 300ms
+
+
+      // --- Atualiza o título da página e o cabeçalho principal ---
+      pageTitle.textContent = `${livro} - ${capitulo}`; // Formato simplificado
+      mainHeading.textContent = `${livro} - ${capitulo}`; // Formato simplificado
+      // --- Fim da atualização do título e cabeçalho ---
+
+      // A atualização do texto da aba agora é feita em atualizarPainelAbertos
+    }
+
+    // Função para fechar um livro do painel "Abertos"
+    function fecharLivroAberto(tabId) {
+      // Encontra o índice da aba a ser removida
+      const tabIndexToRemove = abertoTabs.findIndex(tab => tab.id === tabId);
+
+      if (tabIndexToRemove !== -1) {
+          // Remove a aba do array
+          const removedTab = abertoTabs.splice(tabIndexToRemove, 1)[0];
+
+          // Se a aba removida era a ativa
+          if (removedTab.id === activeTabId) {
+              // Se ainda houver abas abertas, ativa a última aba restante
+              if (abertoTabs.length > 0) {
+                  const lastTab = abertoTabs[abertoTabs.length - 1];
+                  // Ao abrir a última aba, o scrollToVerse será recuperado de lastTab, se existir
+                  // Passa true para restoreScroll para restaurar a posição ao voltar para uma aba
+                  abrirLivroNoCentro(lastTab.book, lastTab.chapter, lastTab.id, true);
+              } else {
+                  // Se não houver mais abas, limpa a área de conteúdo e reseta o estado
+                  document.getElementById('capitulosContainer').innerHTML = '';
+                  document.getElementById('versiculos').innerHTML = '';
+                  livroAtual = null;
+                  activeTabId = null;
+                  // Restaura o título padrão da página e o cabeçalho
+                  pageTitle.textContent = 'Bíblia Interativa';
+                  mainHeading.textContent = 'Bíblia Interativa';
+                   // Limpa o estado de rolagem quando não há livros abertos
+                  for (const book in livroState) {
+                       if (livroState.hasOwnProperty(book)) {
+                           delete livroState[book].scrollTop;
+                       }
+                   }
+              }
+          }
+          // Se a aba removida NÃO era a ativa, apenas atualiza o painel visualmente
+          else {
+             atualizarPainelAbertos();
+          }
+      }
+      // Atualiza o painel de abas abertas
+      atualizarPainelAbertos();
+    }
+
+
+    // Atualiza a exibição do painel "Abertos"
+    function atualizarPainelAbertos() {
+      const container = document.getElementById('favoritos'); // Mantém o ID
+      container.innerHTML = '<h4 class="font-semibold mb-4">Abertos</h4>'; // Mantém o título alterado
+
+      // Adiciona o elemento invisível para forçar a largura mínima
+      const hiddenForcer = document.createElement('span');
+      hiddenForcer.id = 'hidden-width-forcer';
+      // Texto para forçar a largura, ajustado para 17 caracteres visíveis + padding
+      /* "2 Tessalonicenses" tem 16 caracteres. Adicionando 1 espaço para 17. */
+      hiddenForcer.textContent = '2 Tessalonicenses ';
+      container.appendChild(hiddenForcer);
+
+
+      if (abertoTabs.length === 0) {
+        return;
+      }
+
+      // Limpa o conteúdo atual para redesenhar com a nova ordem
+      // Mantém o título e o elemento invisível
+      const titulo = container.querySelector('h4');
+      container.innerHTML = ''; // Limpa tudo, incluindo o forcer temporariamente
+      container.appendChild(titulo);
+      container.appendChild(hiddenForcer); // Adiciona o forcer de volta
+
+
+      // Itera sobre o array de abas abertas para criar os elementos visuais
+      abertoTabs.forEach(tab => {
+        const div = document.createElement('div');
+        div.className = 'aba-livro';
+        div.setAttribute('draggable', true); // Torna o elemento arrastável
+         // Adiciona um atributo de dados para armazenar o ID único da aba
+        div.setAttribute('data-tab-id', tab.id);
+
+        // Adiciona a classe 'active-aba' se for a aba ativa
+        if (tab.id === activeTabId) {
+            div.classList.add('active-aba');
+        }
+
+
+        // Adiciona manipuladores de eventos de arrastar
+        div.addEventListener('dragstart', (e) => {
+            draggedItem = div; // Armazena o elemento sendo arrastado
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', tab.id); // Define os dados a serem transferidos (ID da aba)
+            setTimeout(() => {
+                div.classList.add('dragging'); // Adiciona classe para estilizar durante o arrasto
+            }, 0); // Pequeno atraso para a classe ser aplicada antes de o elemento ser "capturado"
+        });
+
+        div.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Permite o drop
+            e.dataTransfer.dropEffect = 'move';
+
+            const targetItem = e.target.closest('.aba-livro'); // Encontra o item que está sob o cursor
+            if (targetItem && targetItem !== draggedItem) {
+                 // Obtém o ID do item de destino
+                const targetItemId = parseInt(targetItem.getAttribute('data-tab-id'));
+                const draggedItemId = parseInt(draggedItem.getAttribute('data-tab-id'));
+
+                // Encontra os índices no array abertoTabs
+                const targetIndex = abertoTabs.findIndex(t => t.id === targetItemId);
+                const draggedIndex = abertoTabs.findIndex(t => t.id === draggedItemId);
+
+
+                if (targetIndex !== -1 && draggedIndex !== -1) {
+                     // Remove o item arrastado da sua posição original
+                    const [movedItem] = abertoTabs.splice(draggedIndex, 1);
+
+                    // Determina a nova posição com base na posição do mouse em relação ao targetItem
+                    const rect = targetItem.getBoundingClientRect();
+                    const middleY = rect.top + rect.height / 2;
+
+                    if (e.clientY < middleY) {
+                        // Insere antes do targetItem
+                        abertoTabs.splice(targetIndex, 0, movedItem);
+                         // Atualiza a posição visual antes de atualizar o array
+                         container.insertBefore(draggedItem, targetItem);
+                    } else {
+                        // Insere depois do targetItem
+                        abertoTabs.splice(targetIndex + 1, 0, movedItem);
+                         // Atualiza a posição visual antes de atualizar o array
+                         container.insertBefore(draggedItem, targetItem.nextSibling);
+                    }
+                     // Não precisa chamar atualizarPainelAbertos aqui, pois a reordenação visual já foi feita
+                     // e o array abertoTabs foi atualizado.
+                }
+            }
+        });
+
+        div.addEventListener('dragleave', (e) => {
+            // Opcional: remover destaque visual ao sair de um item
+        });
+
+        div.addEventListener('drop', (e) => {
+            e.preventDefault();
+            // A lógica de reordenação foi movida para o dragover
+        });
+
+        div.addEventListener('dragend', (e) => {
+            draggedItem.classList.remove('dragging'); // Remove a classe de estilização
+            draggedItem = null; // Reseta a variável
+             // Após a reordenação, garante que o painel visual corresponda ao array
+             atualizarPainelAbertos();
+        });
+
+
+        const spanNome = document.createElement('span');
+        // Define o texto da aba como "Nome do Livro Capítulo"
+        spanNome.textContent = `${tab.book}${tab.chapter ? ' ' + tab.chapter : ''}`;
+        spanNome.className = 'flex-grow'; // Permite que o nome do livro ocupe o espaço disponível
+
+        const fechar = document.createElement('span');
+        fechar.textContent = '✖';
+        fechar.className = 'fechar cursor-pointer hover:text-red-700'; // Usa a classe CSS personalizada para o fechar
+
+        // Adiciona o evento de clique para abrir o livro ao clicar na aba
+        div.onclick = () => {
+            // Ao clicar na aba, abre o livro e capítulo associados a ela, e define esta aba como ativa
+            // O scrollToVerse será recuperado de dentro de abrirLivroNoCentro
+            // Passa true para restoreScroll para restaurar a posição ao clicar numa aba
+            abrirLivroNoCentro(tab.book, tab.chapter, tab.id, true);
+        };
+
+        // Adiciona o evento de clique para remover a aba
+        fechar.onclick = (e) => {
+          e.stopPropagation(); // Impede que o clique no 'x' dispare o clique na aba
+          fecharLivroAberto(tab.id); // Chama a função para fechar a aba pelo ID
+        };
+
+        div.appendChild(spanNome);
+        div.appendChild(fechar);
+        container.appendChild(div);
+      });
+    }
+
+    // --- Funções de Busca ---
+
+    // Função para realizar a busca com um escopo específico
+    function performSearch(scope = currentSearchScope, searchTermOverride = null) { // Adicionado searchTermOverride
+        const searchTerm = searchTermOverride !== null ? searchTermOverride : searchInput.value.trim(); // Usa override se existir
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        searchResultsContainer.innerHTML = ''; // Limpa resultados anteriores
+
+        if (searchTerm.length < 2) {
+            searchResultsContainer.innerHTML = '<p class="text-gray-600">Digite pelo menos 2 caracteres para buscar.</p>';
+            showSearchModal();
+            highlightFilterButton(scope); // Destaca o botão mesmo sem resultados
+            // Atualiza as contagens para 0 quando o termo é muito curto
+            updateFilterCounts(0, 0, 0);
+            return;
+        }
+
+        // Remove acentos do termo de busca para a comparação
+        const searchTermWithoutAccents = removeAccents(lowerCaseSearchTerm);
+
+        let allResults = bibliaData.filter(verso =>
+            // Remove acentos do texto do versículo antes de comparar
+            removeAccents(verso.text.toLowerCase()).includes(searchTermWithoutAccents)
+        );
+
+        let newResults = allResults.filter(verso => newTestamentBooks.includes(verso.book_name));
+        let oldResults = allResults.filter(verso => !newTestamentBooks.includes(verso.book_name));
+
+        // Atualiza a contagem de resultados nos botões de filtro
+        updateFilterCounts(newResults.length, oldResults.length, allResults.length);
+
+
+        let resultsToDisplay = [];
+        // Filtra os resultados a serem exibidos com base no escopo
+        if (scope === 'new') {
+            resultsToDisplay = newResults;
+        } else if (scope === 'old') {
+            resultsToDisplay = oldResults;
+        } else { // scope === 'all'
+            resultsToDisplay = allResults;
+        }
+
+
+        if (resultsToDisplay.length === 0) {
+            searchResultsContainer.innerHTML = '<p class="text-gray-600">Nenhum versículo encontrado com este termo no escopo selecionado.</p>';
+        } else {
+            resultsToDisplay.forEach(verso => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'verse-result';
+
+                const verseInfo = document.createElement('div');
+                verseInfo.className = 'verse-info';
+
+                // Para destacar, criamos uma regex que ignora acentos e case
+                // Usamos a função buildAccentInsensitiveRegexPattern para criar o padrão
+                const highlightPattern = buildAccentInsensitiveRegexPattern(searchTerm);
+                const highlightRegex = new RegExp(highlightPattern, 'gi'); // Use 'gi' para global e case-insensitive matching
+
+                // A substituição ocorrerá no texto original do versículo, preservando os acentos originais
+                const highlightedText = verso.text.replace(highlightRegex, match => `<strong>${match}</strong>`);
+
+
+                verseInfo.innerHTML = `<strong class="text-blue-700">${verso.book_name} ${verso.chapter}:${verso.verse}</strong> - ${highlightedText}`;
+
+                const openButton = document.createElement('button');
+                openButton.textContent = 'Abrir';
+                openButton.className = 'open-verse-button';
+
+                openButton.onclick = () => {
+                    const newTabId = Date.now();
+                    // Cria uma nova aba para o livro e capítulo do versículo, armazenando o versículo para rolar
+                    const newTab = { id: newTabId, book: verso.book_name, chapter: verso.chapter, scrollToVerse: verso.verse };
+                    abertoTabs.push(newTab); // Adiciona à lista de abas abertas
+
+                    // Abre o livro/capítulo no painel central e define a nova aba como ativa.
+                    // O scrollToVerse será recuperado dentro de abrirLivroNoCentro.
+                    // Passa newTabId e false para restoreScroll (abrir de busca rola para o versículo, não restaura posição anterior)
+                    abrirLivroNoCentro(verso.book_name, verso.chapter, newTabId, false);
+
+                    // Atualiza o painel de abas abertas para exibir a nova aba
+                    atualizarPainelAbertos();
+
+
+                    // Não fecha o modal!
+                };
+
+                resultDiv.appendChild(verseInfo);
+                resultDiv.appendChild(openButton);
+                searchResultsContainer.appendChild(resultDiv);
+            });
+        }
+
+        showSearchModal(); // Exibe o modal com os resultados
+        highlightFilterButton(scope); // Destaca o botão de filtro ativo
+        currentSearchScope = scope; // Atualiza o escopo de busca atual
+        // Mantém o termo de busca no campo de busca do modal
+        modalSearchInput.value = searchTerm;
+    }
+
+    // Função para destacar o botão de filtro de busca ativo (no modal)
+    function highlightFilterButton(scope) {
+        // Remove a classe 'active-filter' de todos os botões de filtro
+        filterNtButton.classList.remove('active-filter');
+        filterOtButton.classList.remove('active-filter');
+        filterAllButton.classList.remove('active-filter');
+
+        // Adiciona a classe 'active-filter' ao botão correspondente ao escopo
+        if (scope === 'new') {
+            filterNtButton.classList.add('active-filter');
+        } else if (scope === 'old') {
+            filterOtButton.classList.add('active-filter');
+        } else if (scope === 'all') {
+            filterAllButton.classList.add('active-filter');
+        }
+    }
+
+    // Função para atualizar a contagem de resultados nos elementos de contagem
+    function updateFilterCounts(newCount, oldCount, allCount) {
+        countNtSpan.textContent = `(${newCount})`;
+        countOtSpan.textContent = `(${oldCount})`;
+        countAllSpan.textContent = `(${allCount})`;
+    }
+
+
+    // Função para exibir o modal de busca
+    function showSearchModal() {
+        searchModalOverlay.classList.add('visible');
+    }
+
+    // Função para esconder o modal de busca
+    function hideSearchModal() {
+        searchModalOverlay.classList.remove('visible');
+    }
+
+    // Event Listeners para a busca do cabeçalho
+    searchButton.addEventListener('click', () => performSearch(currentSearchScope)); // Usa o escopo atual
+    searchInput.addEventListener('keypress', function(event) {
+        // Permite a digitação, mas previne a ação padrão (como submeter um formulário) apenas no Enter
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Previne o comportamento padrão do Enter
+            performSearch(currentSearchScope); // Executa a busca
+        }
+        // Para outras teclas, não impede o comportamento padrão, permitindo a digitação.
+    });
+
+    // Event Listeners para a busca DENTRO do modal
+    modalSearchButton.addEventListener('click', () => {
+        performSearch(currentSearchScope, modalSearchInput.value.trim()); // Usa o valor do campo de busca do modal
+    });
+    modalSearchInput.addEventListener('keypress', function(event) {
+        // Permite a digitação, mas previne a ação padrão (como submeter um formulário) apenas no Enter
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Previne o comportamento padrão do Enter
+            performSearch(currentSearchScope, modalSearchInput.value.trim()); // Executa a busca com o termo do modal
+        }
+        // Para outras teclas, não impede o comportamento padrão, permitindo a digitação.
+    });
+
+
+    // Event Listeners para os botões de filtro de busca (no modal)
+    filterNtButton.addEventListener('click', () => {
+        // Ao clicar no filtro, refaz a busca com o termo atual do campo de busca do modal
+        performSearch('new', modalSearchInput.value.trim());
+    });
+    filterOtButton.addEventListener('click', () => {
+         // Ao clicar no filtro, refaz a busca com o termo atual do campo de busca do modal
+        performSearch('old', modalSearchInput.value.trim());
+    });
+    filterAllButton.addEventListener('click', () => {
+         // Ao clicar no filtro, refaz a busca com o termo atual do campo de busca do modal
+        performSearch('all', modalSearchInput.value.trim());
+    });
+
+    // Event Listeners para os botões de filtro de livros (no painel esquerdo)
+    filterOtBooksButton.addEventListener('click', () => exibirLivros('old'));
+    filterNtBooksButton.addEventListener('click', () => exibirLivros('new'));
+
+
+    // Event Listener para fechar o modal ao clicar fora do conteúdo
+    searchModalOverlay.addEventListener('click', function(event) {
+        // Verifica se o clique foi diretamente no overlay (não no modal-content)
+        if (event.target === searchModalOverlay) {
+            hideSearchModal();
+        }
+    });
+
+    // Impede que cliques dentro do modal-content fechem o modal
+    document.getElementById('search-modal-content').addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+
+    // --- Fim das Funções de Busca ---
+
+
+    // Adiciona manipuladores de eventos de mouse aos versículos para o botão de cópia
+    function addCopyButtonHoverEffects() {
+        const versiculos = document.querySelectorAll('.verse');
+        versiculos.forEach(verseDiv => {
+            const copyButton = verseDiv.querySelector('.copy-verse-button');
+
+            // Remove listeners anteriores para evitar duplicação
+            const oldMouseEnter = verseDiv._mouseenterHandler;
+            const oldMouseLeave = verseDiv._mouseleaveHandler;
+
+            if (oldMouseEnter) verseDiv.removeEventListener('mouseenter', oldMouseEnter);
+            if (oldMouseLeave) verseDiv.removeEventListener('mouseleave', oldMouseLeave);
+
+
+            // Adiciona manipuladores de mouseenter/mouseleave de volta para mostrar/esconder no hover
+            const newMouseEnter = () => {
+                const selection = window.getSelection();
+                const isAnyTextSelected = selection && !selection.isCollapsed;
+
+                // Só mostra o botão no hover se NÃO houver uma seleção ativa
+                if (!isAnyTextSelected && copyButton) {
+                    // Limpa qualquer timeout anterior associado a este elemento
+                    clearTimeout(verseDiv.hoverTimeout);
+
+                    // Define um novo timeout para mostrar o botão após 400ms
+                    verseDiv.hoverTimeout = setTimeout(() => {
+                         copyButton.style.visibility = 'visible';
+                         copyButton.style.opacity = '0.75'; // 25% transparente
+                    }, 400); // Delay de 400ms
+                } else if (copyButton) {
+                     // Garante que o botão esteja escondido se a condição não for atendida
+                     if (copyButton.style.visibility !== 'visible') { // Evita esconder se handleTextSelection já o mostrou
+                         copyButton.style.visibility = 'hidden';
+                         copyButton.style.opacity = '0';
+                     }
+                }
+            };
+
+             const newMouseLeave = (event) => {
+                if (copyButton) {
+                    // Limpa o timeout associado a este elemento
+                    clearTimeout(verseDiv.hoverTimeout);
+
+                    const selection = window.getSelection();
+                    // Esconde o botão apenas se a seleção estiver colapsada.
+                    // Se houver *qualquer* seleção (mesmo que não seja neste versículo),
+                    // handleTextSelection gerenciará a visibilidade.
+                    if (selection.isCollapsed) {
+                         copyButton.style.visibility = 'hidden';
+                         copyButton.style.opacity = '0';
+                    }
+                }
+            };
+
+            // Adiciona os novos listeners e armazena as referências
+            verseDiv.addEventListener('mouseenter', newMouseEnter);
+            verseDiv.addEventListener('mouseleave', newMouseLeave);
+
+            verseDiv._mouseenterHandler = newMouseEnter; // Armazena referência
+            verseDiv._mouseleaveHandler = newMouseLeave; // Armazena referência
+
+        });
+    }
+
+
+    // Função para encontrar o primeiro ancestral de um elemento com uma determinada classe, tratando caso null
+    function findAncestorWithClass(element, className) {
+        let currentNode = element;
+        // Se o nó inicial for um nó de texto, começa a busca a partir do seu parentElement
+        if (currentNode && currentNode.nodeType === Node.TEXT_NODE) {
+            currentNode = currentNode.parentElement;
+        }
+        // Adiciona verificação para garantir que currentNode não é null antes de acessar classList
+        while (currentNode && currentNode && currentNode.nodeType === Node.ELEMENT_NODE && !currentNode.classList.contains(className)) {
+            currentNode = currentNode.parentElement;
+        }
+        // Retorna o ancestral encontrado se for um elemento e tiver a classe, caso contrário retorna null
+        return (currentNode && currentNode.nodeType === Node.ELEMENT_NODE && currentNode.classList.contains(className)) ? currentNode : null;
+    }
+
+
+    // Função para identificar os versículos selecionados e atualizar o estado
+    // Esta função agora é usada principalmente para gerenciar a visibilidade do botão de cópia única
+    function handleTextSelection() {
+        const selection = window.getSelection();
+
+        // Esconde todos os botões de cópia única por padrão ao iniciar a manipulação da seleção
+        document.querySelectorAll('.copy-verse-button').forEach(button => {
+            button.style.visibility = 'hidden';
+            button.style.opacity = '0';
+        });
+
+
+        // Adicionada verificação para rangeCount > 0
+        if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+            return; // Sai da função se a seleção estiver colapsada ou não houver ranges
+        }
+
+        // --- Lógica de visibilidade do botão de cópia única com base na seleção ---
+        // Se houver *alguma* seleção (mesmo que não seja um versículo inteiro),
+        // tentamos mostrar o botão de cópia única no primeiro versículo selecionado.
+        // Isso é um comportamento simplificado após remover a cópia múltipla.
+        const range = selection.getRangeAt(0);
+        const startContainer = range.startContainer;
+        const startVerseElement = findAncestorWithClass(startContainer, 'verse');
+
+        if (startVerseElement) {
+             const copyButton = startVerseElement.querySelector('.copy-verse-button');
+             if (copyButton) {
+                  copyButton.style.visibility = 'visible';
+                  copyButton.style.opacity = '0.75';
+             }
+        }
+        // --- Fim da lógica de visibilidade ---
+
+    }
+
+
+    // Adiciona o manipulador de evento mouseup ao documento para detetar a seleção
+    document.addEventListener('mouseup', handleTextSelection);
+
+    // Adiciona um manipulador de evento para o evento 'selectionchange'
+    // Isso ajuda a detetar quando a seleção é removida (ex: clicando fora)
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        // Chama handleTextSelection para que a visibilidade do botão seja atualizada
+        // com base no novo estado da seleção.
+        handleTextSelection();
+    });
+
+
+    // Modifica a função exibirVersiculos para chamar addCopyButtonHoverEffects após carregar os versículos
+    const originalExibirVersiculos = exibirVersiculos;
+    exibirVersiculos = function(livro, capitulo, scrollToVerse = null, restoreScroll = true) {
+        originalExibirVersiculos(livro, capitulo, scrollToVerse, restoreScroll);
+        // Adiciona os efeitos de hover após os versículos serem exibidos
+        addCopyButtonHoverEffects();
+         // Garante que os botões de cópia única estejam escondidos ao carregar um novo capítulo
+         document.querySelectorAll('.copy-verse-button').forEach(button => {
+             button.style.visibility = 'hidden';
+             button.style.opacity = '0';
+         });
+    };
+
+
+  </script>
+
+</body>
+</html>
