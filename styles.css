@@ -1,0 +1,940 @@
+
+    /* Estilos personalizados para ajustes finos e rolagem */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow-x: hidden; /* Evita rolagem horizontal indesejada */
+      overflow-y: hidden; /* Remove a barra de rolagem vertical principal */
+      font-size: 1.3rem; /* Aproximadamente 130% do tamanho padrão de 16px */
+      display: flex; /* Use flexbox para layout principal */
+      flex-direction: column; /* Empilha elementos verticalmente por padrão */
+      min-height: 100vh; /* Garante que o body ocupe pelo menos a altura da viewport */
+    }
+
+    /* Estilos para o modo escuro (aplicado diretamente no body HTML) */
+    body.dark-mode {
+        background-color: #1A1A1A; /* Fundo preto/muito escuro */
+        color: #E0E0E0; /* Cor da fonte cinza claro */
+    }
+
+    body.dark-mode header {
+        background-color: #121212; /* Preto mais puro para o cabeçalho */
+        color: #E0E0E0;
+    }
+
+     body.dark-mode #livros,
+     body.dark-mode #favoritos {
+         background-color: #242424; /* Um cinza escuro para as barras laterais */
+         border-color: #404040; /* Ajustar a borda para um tom de cinza escuro */
+     }
+
+     body.dark-mode #conteudo {
+         background-color: #1A1A1A; /* Mesmo do body */
+     }
+
+     body.dark-mode .livro,
+     body.dark-mode .aba-livro {
+         background-color: #242424; /* Ajustado para o novo esquema */
+         color: #E0E0E0;
+         border-color: #404040; /* Ajustado para o novo esquema */
+     }
+
+     body.dark-mode .livro:hover,
+     body.dark-mode .aba-livro:hover {
+         background-color: #383838; /* Um cinza um pouco mais claro no hover */
+     }
+
+     body.dark-mode .aba-livro.active-aba {
+         background-color: #60a5fa; /* bg-blue-400 - Mantido para destaque */
+         border-color: #3b82f6; /* border-blue-500 - Mantido para destaque */
+         color: #1f2937; /* text-gray-800 - Mantido para contraste */
+     }
+
+     body.dark-mode .capitulo {
+         background-color: #242424; /* Ajustado para o novo esquema */
+         color: #E0E0E0;
+     }
+
+     body.dark-mode .capitulo:hover {
+         background-color: #383838; /* Ajustado para o novo esquema */
+     }
+
+     body.dark-mode .capitulo.active { /* Este .active é para o modo escuro */
+         background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+         color: white;
+     }
+
+     body.dark-mode .verse {
+         background-color: #2C2C2C; /* Cor dos containers dos versículos */
+         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Ajuste de sombra */
+         font-size: 1.95rem; /* Aumentado em 50% (1.3rem * 1.5) */
+     }
+
+    body.dark-mode .chapter-nav-button {
+        padding: 0.5rem 1rem;
+        background-color: #60a5fa; /* bg-blue-400 - Mantido para destaque */
+        color: #1f2937;
+        border-radius: 9999px; /* rounded-full */
+        cursor: pointer;
+        transition: background-color 200ms ease-in-out;
+        font-weight: bold;
+    }
+
+    body.dark-mode .chapter-nav-button:hover {
+        background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+     }
+     .chapter-nav-button.disabled { /* Estilo para botão desabilitado, comum a todos os modos */
+         opacity: 0.5;
+         cursor: not-allowed;
+     }
+
+    /* Estilos base para .filter-button (estruturais) */
+    .filter-button {
+        padding: 0.3rem 0.6rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 200ms ease-in-out;
+        font-size: 0.6rem;
+        font-weight: bold;
+    }
+    /* Estilos de cor para .filter-button em modo escuro */
+    body.dark-mode .filter-button {
+        background-color: #242424; /* Ajustado para o novo esquema */
+        color: #E0E0E0;
+    }
+
+    body.dark-mode .filter-button:hover {
+        background-color: #383838; /* Ajustado para o novo esquema */
+    }
+
+    body.dark-mode .filter-button.active-filter-button {
+        background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+        color: white;
+    }
+
+    body.dark-content .count {
+        color: #B0B0B0; /* Cinza um pouco mais escuro para contagens */
+        font-size: 0.8rem; /* Tamanho da fonte ajustado */
+    }
+
+    body.dark-mode #search-input,
+    body.dark-mode #modal-search-input {
+        background-color: #2C2C2C; /* Cor dos containers dos versículos */
+        color: #E0E0E0;
+        border: 1px solid #404040; /* Ajustado para o novo esquema */
+    }
+
+    body.dark-mode #search-input::placeholder,
+    body.dark-mode #modal-search-input::placeholder {
+        color: #B0B0B0; /* Cinza um pouco mais escuro para placeholder */
+    }
+     #modal-search-input:focus { /* Estilo de foco, pode ser comum */
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+
+
+    /* Estilos para o overlay do modal de busca */
+    #search-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center; /* Centraliza verticalmente o conteúdo do overlay */
+        z-index: 9999; /* Aumentado o z-index */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #search-modal-overlay.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Estilos para o conteúdo do modal de busca */
+    #search-modal-content {
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 80%; /* Ajustado para ser um pouco mais largo */
+        max-height: 80%;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: left; /* Alinhar texto à esquerda */
+        /* Cores definidas por .dark-mode #search-modal-content */
+    }
+
+    body.dark-mode #search-modal-content {
+        background-color: #242424; /* Ajustado para o novo esquema */
+        color: #E0E0E0;
+    }
+
+    /* Ajustes para o cabeçalho do modal de busca */
+    body.dark-mode #search-modal-content .modal-header {
+        border-bottom: 1px solid #404040; /* Ajustado para o novo esquema */
+        display: flex; /* Usa flexbox */
+        justify-content: space-between; /* Espaço entre o conteúdo e o botão fechar */
+        align-items: flex-start; /* Alinha o conteúdo ao topo */
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+
+    /* Container para o título e a área de busca dentro do cabeçalho */
+    body.dark-mode #search-modal-content .header-content-area {
+        display: flex;
+        flex-direction: column; /* Empilha título e busca verticalmente */
+        align-items: flex-start; /* Alinha título e busca à esquerda */
+        flex-grow: 1; /* Permite que esta área ocupe o espaço disponível */
+        margin-right: 10px; /* Espaço entre o conteúdo e o botão fechar */
+    }
+
+
+    body.dark-mode #search-modal-content .modal-header h4 {
+        margin: 0 0 10px 0; /* Espaço após o título */
+    }
+
+    body.dark-mode .modal-content .filter-area {
+        display: flex;
+        gap: 10px; /* Espaço entre as opções de filtro */
+        margin-top: 10px; /* Espaço acima da área de filtro */
+        justify-content: center; /* Centraliza horizontalmente os botões de filtro */
+    }
+
+    body.dark-mode .modal-content .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 5px; /* Espaço entre o botão e a contagem */
+    }
+
+    body.dark-mode .modal-content .filter-option button {
+        padding: 0.3rem 0.6rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 200ms ease-in-out;
+        font-size: 0.8rem; /* Tamanho da fonte ajustado */
+        font-weight: bold;
+        border: 1px solid transparent;
+        background-color: #60a5fa; /* bg-blue-400 - Mantido para destaque */
+        color: #1f2937;
+    }
+
+    body.dark-mode .modal-content .filter-option button:hover {
+        background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+    }
+
+    body.dark-mode .modal-content .filter-option button.active-filter {
+        background-color: #1e40af; /* bg-blue-800 - Mantido para destaque */
+        color: white;
+    }
+
+    body.dark-content .count {
+        color: #B0B0B0; /* Cinza um pouco mais escuro para contagens */
+        font-size: 0.8rem; /* Tamanho da fonte ajustado */
+    }
+
+    body.dark-mode .modal-content .verse-result {
+        border-bottom: 1px dashed #404040; /* Ajustado para o novo esquema */
+        padding: 10px 0; /* Espaço acima e abaixo de cada resultado */
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* Centraliza verticalmente o botão "Abrir" */
+        gap: 10px; /* Espaço entre o texto do versículo e o botão */
+    }
+     .modal-content .verse-result:last-child { /* Estrutural */
+         border-bottom: none;
+     }
+
+    body.dark-mode .modal-content .verse-info {
+        flex-grow: 1; /* Permite que o texto do versículo ocupe o espaço disponível */
+    }
+
+    /* Estilo para a palavra destacada na busca (strong sem classe específica) */
+    .modal-content .verse-info strong:not(.verse-number) { /* Garante que o negrito seja aplicado, cor herdada */
+        font-weight: bold;
+    }
+
+
+    /* NOVO: Estilo para o nome abreviado do livro e a referência no modal de busca */
+    .modal-content .verse-info .abbreviated-book-name,
+    .modal-content .verse-info .chapter-verse-ref {
+        font-size: inherit; /* Mesmo tamanho da fonte do elemento pai (verse-info) */
+        color: inherit; /* Mesma cor do elemento pai (verse-info) */
+        font-weight: bold; /* Adiciona negrito */
+    }
+
+
+     body.dark-mode .modal-content .open-verse-button {
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        background-color: #60a5fa; /* bg-blue-400 - Mantido para destaque */
+        color: #1f2937;
+        font-size: 0.8rem; /* Tamanho da fonte ajustado */
+        flex-shrink: 0; /* Impede que o botão encolha */
+     }
+
+     body.dark-mode .modal-content .open-verse-button:hover {
+        background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+     }
+
+     /* Estilo para o botão de fechar no modal de busca */
+     body.dark-mode #search-modal-content .close-button {
+         font-size: 1.5rem;
+         cursor: pointer;
+         color: #ef4444; /* text-red-500 - Mantido para destaque */
+         transition: color 0.2s ease;
+     }
+
+     body.dark-mode #search-modal-content .close-button:hover {
+         color: #dc2626; /* text-red-700 - Mantido para destaque */
+     }
+
+    .verse { /* Estrutural */
+        position: relative;
+        /* Cores e padding definidos por body.dark-mode .verse e classes Tailwind no JS */
+    }
+
+    body.dark-mode .highlighted {
+        background-color: #87cefa; /* Azul céu claro para o modo escuro - Mantido para destaque */
+        color: #1f2937; /* Cor do texto para alto contraste no modo escuro - Mantido para destaque */
+        font-weight: normal;
+        font-size: inherit;
+        padding: 0;
+        border-radius: 2px;
+        box-decoration-break: clone;
+        display: inline;
+    }
+
+    /* New CSS for highlight animation */
+    @keyframes verse-highlight {
+        0% { background-color: transparent; }
+        50% { background-color: #60a5fa; } /* Tailwind blue-400 - Mantido para destaque */
+        100% { background-color: transparent; }
+    }
+
+    .highlight-animation {
+        animation: verse-highlight 0.5s ease-out;
+    }
+
+
+    /* Estilos para o novo modal de versículo em inglês */
+    #english-verse-modal-overlay { /* Estrutural, igual ao search-modal-overlay */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Consistent z-index for all modals */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #english-verse-modal-overlay.visible { /* Estrutural */
+        visibility: visible;
+        opacity: 1;
+    }
+
+    #english-verse-modal-content { /* Estrutural */
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 60%;
+        max-height: 80%;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        /* Cores definidas por .dark-mode #english-verse-modal-content */
+    }
+
+    .dark-mode #english-verse-modal-content {
+        background-color: #242424; /* Ajustado para o novo esquema */
+        color: #E0E0E0;
+    }
+
+    .dark-mode #english-verse-modal-content .modal-header {
+        border-bottom: 1px solid #404040; /* Ajustado para o novo esquema */
+        /* display, justify-content, align-items, margin, padding são estruturais */
+    }
+     #english-verse-modal-content .modal-header { /* Estruturais que faltavam */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+
+
+    #english-verse-modal-content .modal-header h4 { /* Estrutural */
+        margin: 0;
+    }
+
+    #english-verse-modal-content .close-button { /* Estrutural e cor para dark mode */
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #ef4444; /* text-red-500 - Mantido para destaque */
+        transition: color 0.2s ease;
+    }
+
+    #english-verse-modal-content .close-button:hover {
+        color: #dc2626; /* text-red-700 - Mantido para destaque */
+    }
+
+    #english-verse-modal-content .verse-text { /* Estrutural */
+        margin-top: 15px;
+        line-height: 1.6;
+        text-align: justify; /* Added for justification */
+    }
+
+    /* NEW: Explicitly remove line-through for <i> tags within the English verse text */
+    #english-verse-modal-content .verse-text i {
+        text-decoration: none !important;
+        font-style: italic !important; /* Ensure italic style is applied and preserved */
+    }
+
+    .dark-mode #english-verse-modal-content .verse-reference {
+         color: #B0B0B0; /* Cinza um pouco mais escuro para referência */
+    }
+     #english-verse-modal-content .verse-reference { /* Estrutural */
+        margin-top: 15px;
+        font-style: italic;
+    }
+
+    /* Estilo para texto dentro de <J> tags na versão em inglês */
+    .text-yellow-j {
+        color: #ffffcdff; /* Changed from #ffffbbff to #ffffcdff */
+    }
+
+    /* Adicionado para feedback visual no duplo clique */
+    .livro.double-clicked {
+        animation: double-click-feedback 0.3s ease-out;
+    }
+
+    @keyframes double-click-feedback {
+        0% { background-color: transparent; } /* Cor inicial (do hover ou normal) */
+        50% { background-color: #60a5fa; } /* Cor de destaque (azul claro) */
+        100% { background-color: transparent; } /* Volta para a cor inicial */
+    }
+
+    /* Estilos para os painéis laterais e conteúdo central */
+    #livros {
+        width: 250px; /* Largura fixa para o painel de livros */
+        flex-shrink: 0; /* Impede que o painel encolha */
+        height: 100%; /* Ocupa 100% da altura do seu pai flexível */
+        display: flex; /* Adicionado para usar flexbox */
+        flex-direction: column; /* Empilha os itens verticalmente */
+    }
+
+    #favoritos {
+        width: 250px; /* Largura fixa para o painel de abertos */
+        flex-shrink: 0; /* Impede que o painel encolha */
+        height: 100%; /* Ocupa 100% da altura do seu pai flexível */
+        position: relative; /* Necessário para posicionar o botão de ajuda */
+        display: flex; /* Torna-o um container flex */
+        flex-direction: column; /* Empilha os itens verticalmente */
+        padding: 1rem; /* Mantém o padding */
+        border-left: 1px solid; /* Mantém a borda */
+        /* Removido overflow-y: auto daqui */
+    }
+
+    #conteudo {
+        flex-grow: 1; /* Permite que o conteúdo central ocupe o espaço restante */
+        overflow-y: auto; /* Adiciona barra de rolagem vertical para o conteúdo da Bíblia */
+        height: 100%; /* Ocupa 100% da altura do seu pai flexível */
+        display: flex; /* Usar flexbox para alinhar conteúdo e mensagem inicial */
+        flex-direction: column;
+        justify-content: flex-start; /* Alinha ao topo por padrão */
+        padding-left: 1rem; /* Add padding to the left for alignment */
+        padding-right: 1rem; /* Keep existing padding for consistency */
+    }
+
+    /* Estilos para as abas no painel "Abertos" */
+    .aba-livro {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        border: 1px solid; /* A cor da borda é tratada pelo dark-mode */
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        font-size: 1rem; /* Tamanho da fonte ajustado para as abas */
+    }
+
+    .aba-livro .fechar {
+        margin-left: 10px;
+        font-size: 0.9rem;
+    }
+
+     /* Estilo para forçar a largura mínima do painel "Abertos" */
+     #hidden-width-forcer {
+         visibility: hidden;
+         white-space: nowrap;
+         position: absolute;
+     }
+
+    /* Estilo para o painel de livros em mobile */
+    @media (max-width: 768px) {
+        #livros.visible-mobile {
+            display: flex !important; /* Força a exibição em mobile como flex column */
+            position: absolute;
+            top: 96px; /* Abaixo do header */
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 96px);
+            z-index: 10; /* Garante que fique por cima do conteúdo */
+            /* overflow-y: auto; Removido, pois o listaLivros terá seu próprio overflow */
+        }
+
+        #livros,
+        #favoritos {
+            display: none;
+        }
+
+        #conteudo {
+            width: 100%; /* Conteúdo ocupa toda a largura em mobile */
+        }
+    }
+
+    /* Estilo para os nomes dos livros no painel esquerdo */
+    .livro {
+        font-size: 1rem; /* Tamanho da fonte ajustado para os livros */
+        margin-bottom: 0.25rem; /* Adiciona um pequeno espaço abaixo de cada livro */
+        -webkit-user-select: none;  /* Safari */
+        -moz-user-select: none;     /* Firefox */
+        -ms-user-select: none;      /* IE 10+ */
+        user-select: none;          /* Standard */
+    }
+
+
+    /* Estilos para barras de rolagem flutuantes (sem fundo) */
+    #conteudo::-webkit-scrollbar,
+    #livros::-webkit-scrollbar, /* Removido para #livros, pois agora listaLivros tem a rolagem */
+    #aberto-tabs-scroll-container::-webkit-scrollbar,
+    #listaLivros::-webkit-scrollbar { /* Adicionado para listaLivros */
+      width: 8px; /* Largura da barra de rolagem vertical */
+      height: 8px; /* Altura da barra de rolagem horizontal */
+    }
+
+    #conteudo::-webkit-scrollbar-track,
+    #livros::-webkit-scrollbar-track, /* Removido */
+    #aberto-tabs-scroll-container::-webkit-scrollbar-track,
+    #listaLivros::-webkit-scrollbar-track { /* Adicionado */
+      background: transparent; /* Remove o fundo do track */
+    }
+
+    #conteudo::-webkit-scrollbar-thumb,
+    #livros::-webkit-scrollbar-thumb, /* Removido */
+    #aberto-tabs-scroll-container::-webkit-scrollbar-thumb,
+    #listaLivros::-webkit-scrollbar-thumb { /* Adicionado */
+      background-color: rgba(156, 163, 175, 0.5); /* Cor e opacidade para a barra */
+      border-radius: 4px; /* Bordas arredondadas para a barra */
+    }
+
+    #conteudo::-webkit-scrollbar-thumb:hover,
+    #livros::-webkit-scrollbar-thumb:hover, /* Removido */
+    #aberto-tabs-scroll-container::-webkit-scrollbar-thumb:hover,
+    #listaLivros::-webkit-scrollbar-thumb:hover { /* Adicionado */
+      background-color: rgba(156, 163, 175, 0.8); /* Cor da barra ao passar o mouse */
+    }
+
+    /* Estilo para a mensagem inicial no centro */
+    #initial-message {
+        text-align: center;
+        color: #B0B0B0; /* Cinza um pouco mais escuro para a mensagem inicial */
+        margin-top: 10vh; /* Ajuste conforme necessário para centralizar verticalmente */
+    }
+
+    /* Estilos para o novo modal de sinônimos */
+    #sinonimos-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Consistent z-index for all modals */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    #sinonimos-modal-overlay.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    #sinonimos-modal-content {
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 60%;
+        max-height: 80%;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        text-align: left; /* Alinhar texto à esquerda */
+        /* Cores definidas por .dark-mode */
+    }
+
+    body.dark-mode #sinonimos-modal-content {
+        background-color: #242424; /* Ajustado para o novo esquema */
+        color: #E0E0E0;
+    }
+
+    #sinonimos-modal-content .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #404040; /* Ajustado para o novo esquema */
+    }
+
+    #sinonimos-modal-content .modal-header h4 {
+        margin: 0;
+        font-size: 1.2rem; /* Ajuste o tamanho da fonte do título do modal */
+    }
+
+    #sinonimos-modal-content .close-button {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #ef4444; /* text-red-500 - Mantido para destaque */
+        transition: color 0.2s ease;
+    }
+
+    #sinonimos-modal-content .close-button:hover {
+        color: #dc2626; /* text-red-700 - Mantido para destaque */
+    }
+
+    #sinonimos-modal-content .keyword {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #60a5fa; /* Cor de destaque para a palavra-chave - Mantido para destaque */
+    }
+
+    #sinonimos-modal-content .lines-list {
+        list-style: disc;
+        margin-left: 20px;
+    }
+
+    #sinonimos-modal-content .lines-list li {
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+
+    /* Optional: Add some margin between paragraphs in paragraph mode */
+    body.dark-mode .paragraph-mode-container .paragraph {
+        margin-bottom: 0.5rem; /* Ajustado para ser igual ao modo versículo */
+        text-align: justify; /* Adicionado para justificar o texto */
+    }
+
+    /* Optional: Style the individual verse parts within a paragraph */
+    body.dark-mode .paragraph-mode-container .paragraph .verse-content-part {
+        display: inline; /* Ensure parts flow inline */
+        /* Add any other desired styling for verse parts */
+    }
+
+    /* Style for the verse number in any mode/language */
+    .verse-number {
+        vertical-align: super; /* Align to the top */
+        font-size: 50%; /* Reduce font size by 50% */
+        font-weight: bold; /* Keep bold */
+        margin-right: 0.05em; /* Reduzido para um espaço bem pequeno */
+        display: inline-block; /* NEW: Ensures it behaves inline but respects vertical-align better */
+    }
+
+    /* Dark mode color for the verse number */
+    body.dark-mode .verse-number {
+         color: #93c5fd; /* text-blue-300 - Mantido para destaque */
+    }
+
+    /* Ajustes para os botões de toggle de idioma e modo */
+    .header-toggle-buttons {
+        display: flex;
+        flex-direction: column; /* Empilha os botões verticalmente */
+        align-items: flex-start; /* Alinha os botões à esquerda */
+        margin-right: 1rem; /* Espaçamento à direita do grupo de botões */
+    }
+
+    .header-toggle-buttons button {
+        padding: 0.25rem 0.5rem; /* Reduz o padding em 50% (p-1 ou p-2/2) */
+        font-size: 0.75rem; /* Reduz o tamanho da fonte (text-xs) */
+        border-radius: 0.375rem; /* rounded-md */
+        margin-bottom: 0.25rem; /* Espaçamento entre os botões */
+    }
+
+    .header-toggle-buttons button:last-child {
+        margin-bottom: 0; /* Remove a margem inferior do último botão */
+    }
+
+    /* Estilos para o botão de ajuda */
+    #help-button {
+        position: absolute;
+        top: 10px; /* Ajuste conforme a imagem */
+        left: 10px; /* Ajuste conforme a imagem */
+        width: 15px; /* 25% menor (20px * 0.75) */
+        height: 15px; /* 25% menor (20px * 0.75) */
+        border-radius: 50%;
+        background-color: #60a5fa; /* bg-blue-400 - Mantido para destaque */
+        color: #1f2937; /* text-gray-800 - Mantido para contraste */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 900; /* Mais grosso que bold (700) */
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        z-index: 1004; /* Para ficar acima do cabeçalho */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        font-size: 0.7rem; /* Ajusta o tamanho da fonte para o botão menor */
+    }
+
+    #help-button:hover {
+        background-color: #3b82f6; /* bg-blue-500 - Mantido para destaque */
+        transform: scale(1.05);
+    }
+
+    /* Estilos para a caixa de instruções */
+    #instructions-box {
+        position: absolute;
+        top: 35px; /* Ajustado para reduzir o espaço entre o botão e a caixa */
+        left: 10px;
+        background-color: #242424; /* Ajustado para o novo esquema */
+        color: #E0E0E0;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        z-index: 1005; /* Acima do botão de ajuda e cabeçalho */
+        max-width: 250px; /* Largura máxima para a caixa */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #instructions-box.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Seta do balão de fala */
+    #instructions-box::before {
+        content: '';
+        position: absolute;
+        top: -10px; /* Posição acima da caixa */
+        left: 5px; /* Alinha com o botão (10px left + 10px (button width/2) - 5px (triangle base/2)) */
+        border-width: 0 8px 10px 8px; /* Cria um triângulo */
+        border-color: transparent transparent #242424 transparent; /* Cor do triângulo igual ao fundo da caixa */
+        filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.2)); /* Adiciona sombra à seta */
+    }
+
+    #instructions-box h5 {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #93c5fd; /* text-blue-300 - Mantido para destaque */
+    }
+
+    #instructions-box ul {
+        list-style: disc;
+        margin-left: 20px;
+    }
+
+    #instructions-box ul li {
+        margin-bottom: 5px;
+        line-height: 1.4;
+        font-size: 0.8rem; /* Reduzido em 20% de 1rem (0.8 * 16px = 12.8px) */
+    }
+
+    #instructions-box li strong {
+        color: #e0f2fe; /* text-blue-100 - Mantido para destaque */
+    }
+
+    /* New CSS for the scrollable container within #favoritos */
+    #aberto-tabs-scroll-container {
+        flex-grow: 1; /* Takes up remaining vertical space */
+        overflow-y: auto; /* Handles its own scrolling */
+    }
+
+    /* Styles for main content wrapper */
+    .main-content-wrapper {
+        display: flex;
+        flex-direction: column; /* Default to column for mobile */
+        height: calc(100vh - 96px); /* Full viewport height minus header height */
+        overflow: hidden; /* Important to contain children's scrollbars */
+        position: relative; /* For top positioning */
+        margin-top: 96px; /* Pushes content below the fixed header */
+    }
+
+    /* Style for the new add-to-abertos button */
+    #add-current-to-abertos-button {
+        padding: 0.25rem; /* Reduced padding */
+        font-size: 0.75rem; /* Reduced font size */
+        width: 24px; /* Explicit width */
+        height: 24px; /* Explicit height */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Mobile specific adjustments for header elements */
+    @media (max-width: 768px) {
+        body {
+            font-size: 1rem; /* Base font size for mobile, reduced */
+        }
+
+        /* Header layout adjustments */
+        header {
+            height: auto; /* Allow header to adjust height based on content */
+            padding-bottom: 0.5rem; /* Add some padding at the bottom */
+        }
+
+        header .flex.items-center.justify-between.w-full {
+            flex-wrap: wrap; /* Allow wrapping for elements */
+            justify-content: space-between; /* Space out elements */
+            align-items: flex-start; /* Align items to the top */
+        }
+
+        .header-toggle-buttons {
+            flex-direction: row; /* Keep buttons horizontal */
+            align-items: center;
+            margin-right: 0.5rem;
+            gap: 0.25rem;
+            order: 1; /* Place at the beginning */
+            width: auto; /* Auto width */
+        }
+
+        .header-toggle-buttons button {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.65rem;
+            margin-bottom: 0;
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        #toggle-books-button {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+            margin-right: 0.5rem;
+            order: 2; /* Place after toggle buttons */
+        }
+
+        #main-heading {
+            font-size: 1.2rem;
+            flex-grow: 1;
+            text-align: center;
+            margin: 0.5rem 0; /* Adjust vertical margin */
+            width: 100%; /* Take full width */
+            order: 4; /* Place on a new line */
+        }
+
+        header .flex.flex-col.items-end {
+            align-items: flex-end;
+            flex-shrink: 0;
+            order: 3; /* Place after toggle books button */
+            width: auto; /* Auto width */
+        }
+
+        header .flex.items-center.mb-2 {
+            margin-bottom: 0.25rem; /* Reduce margin below search input */
+            width: 100%; /* Take full width for search input and button */
+            justify-content: flex-end; /* Align search elements to the right */
+        }
+
+        #search-input {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+            width: 120px; /* Increased width for search input */
+            min-width: 0;
+            margin-right: 0.25rem;
+        }
+
+        #search-button {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        #copyright-info {
+            font-size: 0.6rem;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px; /* Increased max-width */
+            width: 100%; /* Ensure it takes full available width */
+        }
+
+        body.dark-mode .verse {
+            font-size: 1.17rem; /* Reduzido em 40% (1.95rem * 0.6) */
+        }
+
+        /* Mobile search modal adjustments */
+        #search-modal-content {
+            max-width: 95%; /* Make modal wider on mobile */
+            padding: 15px;
+        }
+
+        #search-modal-content .modal-header {
+            flex-direction: column; /* Stack header elements vertically */
+            align-items: center; /* Center align header elements */
+            text-align: center;
+        }
+
+        #search-modal-content .modal-header .header-content-area {
+            width: 100%;
+            margin-right: 0;
+            align-items: center; /* Center align search input and button */
+        }
+
+        #search-modal-content .modal-header h4 {
+            margin-bottom: 10px;
+        }
+
+        #search-modal-content .modal-header .flex.items-center.mb-4 {
+            justify-content: center; /* Center search input and button */
+            width: 100%;
+        }
+
+        #modal-search-input {
+            flex-grow: 1; /* Allow input to grow */
+            max-width: 70%; /* Limit max width */
+        }
+
+        #search-modal-content .filter-area {
+            flex-direction: column; /* Stack filter buttons vertically */
+            gap: 5px; /* Reduce gap */
+            margin-top: 15px;
+        }
+
+        #search-modal-content .filter-option {
+            justify-content: center; /* Center filter options */
+        }
+
+        #search-modal-content .verse-result {
+            flex-direction: column; /* Stack verse info and button vertically */
+            align-items: center; /* Center align */
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        #search-modal-content .verse-info {
+            margin-bottom: 10px; /* Space between verse info and button */
+        }
+    }
+
+    @media (min-width: 769px) {
+        .main-content-wrapper {
+            flex-direction: row; /* Change to row for desktop */
+        }
+    }
+
+        
