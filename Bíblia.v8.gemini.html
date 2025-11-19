@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bíblia Interativa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/iamthe202iamthe202/projects/refs/heads/main/styles.css">
+  
+
+</head>
+<body class="dark-mode">
+  <header class="bg-blue-700 text-white p-4 shadow-md flex flex-col items-center fixed top-0 left-0 w-full z-[1000]" style="height: 96px;">
+    <div class="flex items-center justify-between w-full">
+        <div class="flex items-center">
+            <div class="header-toggle-buttons">
+                <button id="language-toggle-button" class="bg-blue-500 hover:bg-blue-600 text-white transition duration-200 ease-in-out">EN</button>
+                <button id="mode-toggle-button" class="bg-blue-500 hover:bg-blue-600 text-white transition duration-200 ease-in-out">Modo Parágrafo</button>
+            </div>
+            <button id="toggle-books-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-200 ease-in-out mr-4 md:hidden">Livros</button>
+        </div>
+        <h1 id="main-heading" class="text-center md:text-left text-2xl font-bold"></h1>
+        <div class="flex flex-col items-end">
+            <div class="flex items-center mb-2">
+                <input type="text" id="search-input" placeholder="Buscar na Bíblia..." class="p-2 rounded-md mr-2">
+                <button id="search-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-200 ease-in-out">Buscar</button>
+            </div>
+            <div id="copyright-info" class="text-xs text-right w-full">
+                Bíblia King James 1611 - Acesse bkjfiel.com.br
+            </div>
+        </div>
+    </div>
+  </header>
+
+  <div class="main-content-wrapper">
+    <div id="livros" class="p-4 border-r md:h-full flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex gap-2">
+                <button id="filter-ot-books" class="filter-button" data-testament="old">AT</button>
+                <button id="filter-nt-books" class="filter-button" data-testament="new">NT</button>
+            </div>
+            <button id="add-current-to-abertos-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition duration-200 ease-in-out">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        <div id="listaLivros" class="flex-grow overflow-y-auto">
+           <p>Carregando livros...</p>
+        </div>
+    </div>
+
+    <div id="conteudo" class="flex-grow p-4 md:h-full">
+      <div id="capitulosContainer" class="flex flex-wrap gap-2 mb-4 border-b pb-4">
+        </div>
+      <div id="versiculos">
+           <p>Carregando Bíblia...</p>
+        </div>
+      <div id="initial-message" class="hidden">Selecione um livro ao lado para começar.</div>
+    </div>
+
+    <div id="favoritos" class="p-4 border-l md:h-full relative">
+      <div id="help-button" class="z-[1004]">?</div>
+      <div id="instructions-box" class="z-[1005]"></div>
+      <h4 class="font-semibold mb-4 mt-4">Abertos</h4> <span id="hidden-width-forcer">2 Tessalonicenses</span>
+      <div id="aberto-tabs-scroll-container"> <div id="aberto-tabs-container">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="search-modal-overlay" class="modal-overlay">
+      <div id="search-modal-content" class="modal-content">
+          <div class="modal-header">
+              <div class="header-content-area"> <h4 class="text-xl font-semibold">Resultados da Busca</h4>
+                  <div class="flex items-center mb-4">
+                      <input type="text" id="modal-search-input" placeholder="Nova busca..." class="p-2 rounded-md mr-2">
+                      <button id="modal-search-button" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-200 ease-in-out">Buscar</button>
+                  </div>
+              </div>
+              <span class="close-button" id="close-search-modal">&times;</span> </div>
+          <div class="filter-area">
+              <div class="filter-option">
+                  <button id="filter-nt" data-scope="new">No Novo Testamento</button>
+                  <span id="count-nt" class="count">(0)</span>
+              </div>
+              <div class="filter-option">
+                  <button id="filter-ot" data-scope="old">No Antigo Testamento</sbutton>
+                  <span id="count-ot" class="count">(0)</span>
+              </div>
+              <div class="filter-option">
+                  <button id="filter-all" data-scope="all">Na Bíblia Toda</button>
+                  <span id="count-all" class="count">(0)</span>
+              </div>
+          </div>
+          <div id="search-results-container">
+              </div>
+      </div>
+  </div>
+
+  <div id="english-verse-modal-overlay" class="modal-overlay">
+      <div id="english-verse-modal-content" class="modal-content">
+          <div class="modal-header">
+              <h4 class="text-xl font-semibold">Versículo em Inglês</h4>
+              <span class="close-button" id="close-english-verse-modal">&times;</span>
+          </div>
+          <div id="english-verse-content" class="verse-text">
+              </div>
+          <div id="english-verse-reference" class="verse-reference">
+              </div>
+          </div>
+  </div>
+
+  <div id="sinonimos-modal-overlay" class="modal-overlay">
+      <div id="sinonimos-modal-content" class="modal-content">
+          <div class="modal-header">
+              <h4 class="text-xl font-semibold">Sinônimos e Relacionados</h4>
+              <span class="close-button" id="close-sinonimos-modal">&times;</span>
+          </div>
+          <div id="sinonimos-content">
+              <div class="keyword"></div>
+              <ul class="lines-list"></ul>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    let bibliaData = [];
+    let englishBibliaData = []; // Variável para armazenar os dados da Bíblia em inglês
+    let sinonimosData = []; // Variável para armazenar os dados de sinônimos
+    let livros = []; // Lista de livros para o idioma ATUAL
+    // Array para armazenar os livros abertos como objetos { id, book, chapter, scrollTop, scrollToVerse }
+    const abertoTabs = [];
+    // Objeto para armazenar o estado (capítulo atual e posição de rolagem) de cada livro, indexado pelo nome do livro
+    const livroState = {}; // Mantido para compatibilidade, mas a aba ativa agora guarda o estado principal
+    let livroAtual = null; // Variável para rastrear o livro atualmente exibido
+    let activeTabId = null; // Variável para rastrear o ID da aba ativa
+    let draggedItem = null; // Variável para rastrear o elemento sendo arrastado
+    let paragraphMode = false; // New state variable for paragraph mode
+    let verseToRestoreOnModeChange = null; // Stores the verse number to restore when toggling mode
+    let isLanguageToggling = false; // NEW: Flag to prevent multiple language toggle operations
+
+    // URLs dos arquivos JSON para cada idioma
+    const bibleUrls = {
+        pt: 'https://raw.githubusercontent.com/iamthe202iamthe202/projects/refs/heads/main/KJ_1611_v12_1reis_original2.json', // NOVO URL
+        en: 'https://raw.githubusercontent.com/iamthe202iamthe202/projects/refs/heads/main/KJV%2B_with_booknames_v4.json'
+    };
+
+    // URL para o arquivo JSON de sinônimos
+    const sinonimosUrl = 'https://raw.githubusercontent.com/iamthe202iamthe202/projects/refs/heads/main/sinonimos_raw_limpo_7.json';
+
+    /**
+     * Normalizes a book name by removing accents.
+     * @param {string} name The book name to normalize.
+     * @returns {string} The normalized book name.
+     */
+    function normalizeBookName(name) {
+        // Only normalize Unicode characters (e.g., remove diacritics/accents)
+        return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Helper function to create maps with normalized keys and optionally normalized values
+    function createNormalizedMap(sourceMap, valueNormalizer = (val) => val) {
+        const newMap = {};
+        for (const key in sourceMap) {
+            newMap[normalizeBookName(key)] = valueNormalizer(sourceMap[key]);
+        }
+        return newMap;
+    }
+
+    // Original raw maps (for clarity before normalization)
+    const rawPtBookNameToEnBookName = {
+        "Gênesis": "Genesis", "Êxodo": "Exodus", "Levítico": "Leviticus", "Números": "Numbers", "Deuteronômio": "Deuteronomy",
+        "Josué": "Joshua", "Juízes": "Judges", "Rute": "Ruth", "1 Samuel": "1 Samuel", "2 Samuel": "2 Samuel",
+        "1 Reis": "1 Kings", "2 Reis": "2 Kings", "1 Crônicas": "1 Chronicles", "2 Crônicas": "2 Chronicles",
+        "Esdras": "Ezra", "Neemias": "Nehemiah", "Ester": "Esther", "Jó": "Job", "Salmos": "Psalms",
+        "Provérbios": "Proverbs", "Eclesiastes": "Ecclesiastes", "Cantares": "Song of Solomon",
+        "Isaías": "Isaiah", "Jeremias": "Jeremiah", "Lamentações": "Lamentations",
+        "Ezequiel": "Ezekiel", "Daniel": "Daniel", "Oséias": "Hosea", "Joel": "Joel",
+        "Amós": "Amos", "Obadias": "Obadiah", "Jonas": "Jonah",
+        "Miquéias": "Micah", "Naum": "Nahum", "Habacuque": "Habakkuk",
+        "Sofonias": "Zephaniah", "Ageu": "Haggai",
+        "Zacarias": "Zechariah", "Malaquias": "Malachi",
+        "Mateus": "Matthew", "Marcos": "Mark", "Lucas": "Luke", "João": "John", "Atos": "Acts",
+        "Romanos": "Romans", "1 Coríntios": "1 Corinthians", "2 Coríntios": "2 Corinthians",
+        "Gálatas": "Galatians", "Efésios": "Ephesians",
+        "Filipenses": "Philippians", "Colossenses": "Colossians",
+        "1 Tessalonicenses": "1 Thessalonians", "2 Tessalonicenses": "2 Thessalonians", "1 Timóteo": "1 Timothy", "2 Timóteo": "2 Timothy",
+        "Tito": "Titus", "Filemom": "Philemon", "Hebreus": "Hebrews", "Tiago": "James", "1 Pedro": "1 Peter",
+        "2 Pedro": "2 Peter", "1 João": "1 John", "2 João": "2 John", "3 João": "3 John", "Judas": "Jude",
+        "Apocalipse": "Revelation"
+    };
+
+    const rawEnBookNameToPtBookName = {
+        "Genesis": "Gênesis", "Exodus": "Êxodo", "Leviticus": "Levítico", "Numbers": "Números", "Deuteronomy": "Deuteronômio",
+        "Joshua": "Josué", "Judges": "Juízes", "Ruth": "Rute", "1 Samuel": "1 Samuel", "2 Samuel": "2 Samuel",
+        "1 Kings": "1 Reis", "2 Kings": "2 Reis", "1 Chronicles": "1 Crônicas", "2 Chronicles": "2 Crônicas",
+        "Ezra": "Esdras", "Nehemiah": "Neemias", "Esther": "Ester", "Job": "Jó", "Psalms": "Salmos",
+        "Proverbs": "Provérbios", "Ecclesiastes": "Eclesiastes", "Song of Solomon": "Cantares",
+        "Isaiah": "Isaías", "Jeremiah": "Jeremias", "Lamentations": "Lamentações",
+        "Ezekiel": "Ezequiel", "Daniel": "Daniel", "Hosea": "Oséias", "Joel": "Joel",
+        "Amos": "Amós", "Obadiah": "Obadias", "Jonah": "Jonas",
+        "Micah": "Miquéias", "Nahum": "Naum", "Habakkuk": "Habacuque",
+        "Zephaniah": "Sofonias", "Haggai": "Ageu",
+        "Zacarias": "Zacarias", "Malachi": "Malaquias",
+        "Matthew": "Mateus", "Mark": "Marcos", "Luke": "Lucas", "John": "João", "Acts": "Atos",
+        "Romans": "Romanos", "1 Corinthians": "1 Coríntios", "2 Corinthians": "2 Coríntios",
+        "Galatians": "Gálatas", "Ephesians": "Efésios",
+        "Philippians": "Filipenses", "Colossians": "Colossenses",
+        "1 Thessalonians": "1 Tessalonicenses", "2 Thessalonians": "2 Tessalonicenses", "1 Timothy": "1 Timóteo",
+        "2 Timothy": "2 Timóteo", "Titus": "Tito", "Philemon": "Filemom", "Hebrews": "Hebreus",
+        "James": "Tiago", // Correct: English key, Portuguese value
+        "1 Peter": "1 Pedro", // Correct: English key, Portuguese value
+        "2 Peter": "2 Pedro", // Correct: English key, Portuguese value
+        "1 John": "1 João", // Corrected: English key, Portuguese value
+        "2 John": "2 João", // Corrected: English key, Portuguese value
+        "3 John": "3 João", // Corrected: English key, Portuguese value
+        "Jude": "Judas",
+        "Revelation": "Apocalipse"
+    };
+
+    // Raw abbreviation maps - ADDED THESE DEFINITIONS
+    const rawPtBookNameToAbbreviation = {
+        "Gênesis": "Gn", "Êxodo": "Êx", "Levítico": "Lv", "Números": "Nm", "Deuteronômio": "Dt",
+        "Josué": "Js", "Juízes": "Jz", "Rute": "Rt", "1 Samuel": "1 Sm", "2 Samuel": "2 Sm",
+        "1 Reis": "1 Rs", "2 Reis": "2 Rs", "1 Crônicas": "1 Cr", "2 Crônicas": "2 Cr",
+        "Esdras": "Ed", "Neemias": "Ne", "Ester": "Et", "Jó": "Jó", "Salmos": "Sl",
+        "Provérbios": "Pv", "Eclesiastes": "Ec", "Cantares": "Ct", "Isaías": "Is",
+        "Jeremias": "Jr", "Lamentações": "Lm", "Ezequiel": "Ez", "Daniel": "Dn",
+        "Oséias": "Os", "Joel": "Jl", "Amós": "Am", "Obadias": "Ob", "Jonas": "Jn",
+        "Miquéias": "Mq", "Naum": "Na", "Habacuque": "Hc", "Sofonias": "Sf", "Ageu": "Ag",
+        "Zacarias": "Zc", "Malaquias": "Ml", "Mateus": "Mt", "Marcos": "Mc", "Lucas": "Lc",
+        "João": "Jo", "Atos": "At", "Romanos": "Rm", "1 Coríntios": "1 Co", "2 Coríntios": "2 Co",
+        "Gálatas": "Gl", "Efésios": "Ef", "Filipenses": "Fp", "Colossenses": "Cl",
+        "1 Tessalonicenses": "1 Ts", "2 Tessalonicenses": "2 Ts", "1 Timóteo": "1 Tm",
+        "2 Timóteo": "2 Tm", "Tito": "Tt", "Filemom": "Fm", "Hebreus": "Hb", "Tiago": "Tg",
+        "1 Pedro": "1 Pe", "2 Pedro": "2 Pe", "1 João": "1 Jo", "2 João": "2 Jo", "3 João": "3 Jo",
+        "Judas": "Jd", "Apocalipse": "Ap"
+    };
+
+    const rawEnBookNameToAbbreviation = {
+        "Genesis": "Gen", "Exodus": "Ex", "Leviticus": "Lev", "Numbers": "Num", "Deuteronomy": "Deut",
+        "Joshua": "Josh", "Judges": "Judg", "Ruth": "Ruth", "1 Samuel": "1 Sam", "2 Samuel": "2 Sam",
+        "1 Kings": "1 Kin", "2 Kings": "2 Kin", "1 Chronicles": "1 Chron", "2 Chronicles": "2 Chron",
+        "Ezra": "Ezra", "Nehemiah": "Neh", "Esther": "Esth", "Job": "Job", "Psalms": "Psa",
+        "Proverbs": "Prov", "Ecclesiastes": "Eccl", "Song of Solomon": "Song", "Isaiah": "Isa",
+        "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Ezek", "Daniel": "Dan",
+        "Hosea": "Hos", "Joel": "Joel", "Amos": "Amos", "Obadiah": "Obad", "Jonah": "Jon",
+        "Micah": "Mic", "Nahum": "Nah", "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag",
+        "Zechariah": "Zech", "Malachi": "Mal", "Matthew": "Matt", "Mark": "Mark", "Luke": "Luke",
+        "John": "John", "Acts": "Acts", "Romans": "Rom", "1 Corinthians": "1 Cor", "2 Corinthians": "2 Cor",
+        "Galatians": "Gal", "Ephesians": "Eph", "Philippians": "Phil", "Colossians": "Col",
+        "1 Thessalonians": "1 Thess", "2 Thessalonians": "2 Thess", "1 Timothy": "1 Tim",
+        "2 Timothy": "2 Tim", "Titus": "Titus", "Philemon": "Phlm", "Hebrews": "Heb", "James": "Jas",
+        "1 Peter": "1 Pet", "2 Peter": "2 Pet", "1 John": "1 John", "2 John": "2 John", "3 John": "3 John",
+        "Jude": "Jude", "Revelation": "Rev"
+    };
+
+
+    // Normalized maps (keys are normalized, values are normalized)
+    const ptBookNameToEnBookName = createNormalizedMap(rawPtBookNameToEnBookName, normalizeBookName);
+    const enBookNameToPtBookName = createNormalizedMap(rawEnBookNameToPtBookName, normalizeBookName);
+    // Maps for abbreviations (keys are normalized, values are original abbreviations)
+    const ptBookNameToAbbreviation = createNormalizedMap(rawPtBookNameToAbbreviation);
+    const enBookNameToAbbreviation = createNormalizedMap(rawEnBookNameToAbbreviation);
+
+    // New maps to directly translate original book names (keys are original, values are original)
+    const originalPtBookNameToOriginalEnBookName = rawPtBookNameToEnBookName;
+    const originalEnBookNameToOriginalPtBookName = rawEnBookNameToPtBookName;
+
+    // Lista de livros do Novo Testamento para cada idioma (agora normalizados)
+    const newTestamentBooksByLanguage = {
+        pt: [
+            "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios",
+            "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses",
+            "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo",
+            "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João",
+            "2 João", "3 João", "Judas", "Apocalipse"
+        ].map(name => normalizeBookName(name)), // Apply normalization here for internal comparison
+        en: [
+            "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians",
+            "2 Corinthians", "Galatians", "Ephesians",
+            "Philippians", "Colossians",
+            "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy",
+            "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John",
+            "2 John", "3 John", "Jude", "Revelation"
+        ].map(name => normalizeBookName(name)) // Apply normalization here for internal comparison
+    };
+
+
+    let currentLanguage = 'pt';
+    let currentSearchScope = 'new';
+    let currentBookFilter = 'new';
+    const pageTitle = document.querySelector('title');
+    const mainHeading = document.getElementById('main-heading');
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const searchModalOverlay = document.getElementById('search-modal-overlay');
+    const searchResultsContainer = document.getElementById('search-results-container');
+    const conteudoDiv = document.getElementById('conteudo');
+    const listaLivrosDiv = document.getElementById('listaLivros');
+    const capitulosContainer = document.getElementById('capitulosContainer');
+    const languageToggleButton = document.getElementById('language-toggle-button');
+    const modeToggleButton = document.getElementById('mode-toggle-button');
+    const initialMessageDiv = document.getElementById('initial-message');
+    const copyrightInfoDiv = document.getElementById('copyright-info');
+    // const loadingSpinnerOverlay = document.getElementById('loading-spinner-overlay'); // Get reference to spinner - REMOVED
+
+    const englishVerseModalOverlay = document.getElementById('english-verse-modal-overlay');
+    const englishVerseContentDiv = document.getElementById('english-verse-content');
+    const englishVerseReferenceDiv = document.getElementById('english-verse-reference');
+    const closeEnglishVerseModalButton = document.getElementById('close-english-verse-modal');
+    const closeSearchModalButton = document.getElementById('close-search-modal');
+
+    const modalSearchInput = document.getElementById('modal-search-input');
+    const modalSearchButton = document.getElementById('modal-search-button');
+
+    const filterNtButton = document.getElementById('filter-nt');
+    const filterOtButton = document.getElementById('filter-ot');
+    const filterAllButton = document.getElementById('filter-all');
+    const countNtSpan = document.getElementById('count-nt');
+    const countOtSpan = document.getElementById('count-ot');
+    const countAllSpan = document.getElementById('count-all');
+
+    const filterOtBooksButton = document.getElementById('filter-ot-books');
+    const filterNtBooksButton = document.getElementById('filter-nt-books');
+    const addCurrentToAbertosButton = document.getElementById('add-current-to-abertos-button'); // Novo botão
+
+    const toggleBooksButton = document.getElementById('toggle-books-button');
+    const livrosElement = document.getElementById('livros');
+    const versiculosDiv = document.getElementById('versiculos'); // Global declaration for versiculosDiv
+
+    const helpButton = document.getElementById('help-button');
+    const instructionsBox = document.getElementById('instructions-box');
+    const abertoTabsContainer = document.getElementById('aberto-tabs-container');
+    const abertoTabsScrollContainer = document.getElementById('aberto-tabs-scroll-container');
+
+    const sinonimosModalOverlay = document.getElementById('sinonimos-modal-overlay');
+    const sinonimosModalContent = document.getElementById('sinonimos-modal-content');
+    const closeSinonimosModalButton = document.getElementById('close-sinonimos-modal');
+    const sinonimosContentDiv = document.getElementById('sinonimos-content');
+    const sinonimosKeywordDiv = sinonimosContentDiv.querySelector('.keyword');
+    const sinonimosLinesList = sinonimosContentDiv.querySelector('.lines-list');
+
+    /**
+     * Shows the loading spinner.
+     * REMOVED
+     */
+    // function showSpinner() {
+    //     loadingSpinnerOverlay.classList.remove('hidden');
+    //     logDebugMessage('[showSpinner] Spinner displayed.', 'debug');
+    // }
+
+    /**
+     * Hides the loading spinner.
+     * REMOVED
+     */
+    // function hideSpinner() {
+    //     loadingSpinnerOverlay.classList.add('hidden');
+    //     logDebugMessage('[hideSpinner] Spinner hidden.', 'debug');
+    // }
+
+    /**
+     * Logs a message to the browser's console.
+     * Removed debug panel specific logging.
+     * @param {string} message The message to log.
+     * @param {string} type The type of message (e.g., 'info', 'error', 'event', 'debug', 'warn', 'critical', 'success').
+     */
+    function logDebugMessage(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const formattedMessage = `[${timestamp}] [${type.toUpperCase()}] ${message.replace(/<\/?strong>/g, '')}`; // Remove HTML tags for console
+
+        // Log to console
+        switch (type) {
+            case 'info':
+                console.info(formattedMessage);
+                break;
+            case 'error':
+            case 'critical':
+                console.error(formattedMessage);
+                break;
+            case 'warn':
+                console.warn(formattedMessage);
+                break;
+            case 'success':
+                console.log(`%c${formattedMessage}`, 'color: green; font-weight: bold;');
+                break;
+            case 'event':
+                console.log(`%c${formattedMessage}`, 'color: #87CEFA;'); // Light blue for events
+                break;
+            case 'debug':
+                console.debug(formattedMessage);
+                break;
+            default:
+                console.log(formattedMessage);
+        }
+    }
+
+    function removeAccents(str) {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function buildAccentInsensitiveRegexPattern(term) {
+        const replacements = {
+            'a': '[aáàãâäa]', 'e': '[eéèêëe]', 'i': '[iíìîîi]',
+            'o': '[oóòõôöo]', 'u': '[uúùûûûu]', 'c': '[cçc]',
+        };
+        let pattern = '';
+        for (const char of term.toLowerCase()) {
+            pattern += replacements[char] || char;
+        }
+        return pattern;
+    }
+
+    // NOVO: Função para abreviar nomes de livros
+    function abbreviateBookName(fullName) {
+        // Use o mapeamento correto para o idioma atual
+        // Ensure the fullName is normalized before lookup in abbreviation maps
+        const normalizedFullName = normalizeBookName(fullName);
+
+        if (currentLanguage === 'pt' && ptBookNameToAbbreviation[normalizedFullName]) {
+            return ptBookNameToAbbreviation[normalizedFullName];
+        } else if (currentLanguage === 'en' && enBookNameToAbbreviation[normalizedFullName]) {
+            return enBookNameToAbbreviation[normalizedFullName];
+        }
+        return normalizedFullName.substring(0, 4); // Fallback para 4 primeiras letras
+    }
+
+    /**
+     * Updates the global 'livros' array based on the current language and loaded Bible data.
+     * @param {string} lang The language to update the book list for ('pt' or 'en').
+     */
+    function updateLivrosList(lang) {
+        let currentBiblia = (lang === 'pt') ? bibliaData : englishBibliaData;
+        if (currentBiblia && currentBiblia.length > 0) {
+            // Use original_book_name for the displayed list
+            let bookNames = new Set(currentBiblia.map(v => v.original_book_name));
+            livros = [...bookNames];
+            logDebugMessage(`[updateLivrosList] Lista de livros atualizada para ${lang}. Total de livros: ${livros.length}. Primeiros 5 livros: ${JSON.stringify(livros.slice(0, 5))}. Full list: ${JSON.stringify(livros)}`, 'info');
+        } else {
+            livros = [];
+            logDebugMessage(`[updateLivrosList] Dados da Bíblia em ${lang} estão vazios. Lista de livros limpa.`, 'warn');
+        }
+    }
+
+
+    async function loadBibleData(language) {
+        logDebugMessage(`Attempting to load Bible data for language: ${language} from ${bibleUrls[language]}`, 'info');
+        const url = bibleUrls[language];
+        // Only show loading indicators if this is the current active language
+        if (language === currentLanguage) {
+             document.getElementById('versiculos').innerHTML = '<p>Carregando Bíblia...</p>';
+             listaLivrosDiv.innerHTML = '<p>Carregando livros...</p>';
+             initialMessageDiv.classList.add('hidden');
+             capitulosContainer.classList.add('hidden');
+             // Spinner is now managed by DOMContentLoaded to ensure all initial loads are done - REMOVED
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                logDebugMessage(`Fetch error for ${language}: Status ${response.status}, StatusText: ${response.statusText}, URL: ${url}`, 'error');
+                if (response.status === 429) {
+                     logDebugMessage(`Rate limit hit for ${language}. Retrying in 0.5 seconds...`, 'warn');
+                     await new Promise(resolve => setTimeout(resolve, 500));
+                     return loadBibleData(language);
+                }
+                throw new Error(`Erro ao carregar dados da Bíblia em ${language}: ${response.statusText} (Status: ${response.status})`);
+            }
+            const data = await response.json();
+
+            if (!Array.isArray(data) || data.length === 0 || (!data[0].book_name && !data[0].book && !data[0].name)) {
+                 logDebugMessage(`Invalid or empty JSON data loaded for ${language}. Expected array with book name property.`, 'error');
+                 throw new Error(`Dados inválidos ou vazios para ${language}.`);
+            }
+
+            // Normalize book names within the loaded data
+            const processedData = data.map(verse => {
+                let originalBookName = '';
+                // Prioritize 'book_name', then 'book', then 'name'
+                if (verse.book_name !== undefined) {
+                    originalBookName = verse.book_name;
+                } else if (verse.book !== undefined) {
+                    originalBookName = verse.book;
+                } else if (verse.name !== undefined) {
+                    originalBookName = verse.name;
+                }
+                return {
+                    ...verse,
+                    original_book_name: originalBookName, // Store the original, accented name
+                    book_name: normalizeBookName(originalBookName) // Store the normalized name for internal lookups
+                };
+            });
+
+            if (language === 'pt') {
+                bibliaData = processedData;
+                logDebugMessage(`Dados da Bíblia em ${language} carregados e normalizados.`, 'success');
+            } else if (language === 'en') {
+                englishBibliaData = processedData;
+                logDebugMessage(`Dados da Bíblia em ${language} carregados e normalizados.`, 'success');
+            }
+
+        } catch (error) {
+            logDebugMessage(`Erro FATAL ao carregar Bíblia em ${language}: ${error.message}`, 'critical');
+            if (language === currentLanguage) { // Only show error on UI if it's the currently active language
+                document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Erro ao carregar dados (${language}). Verifique o console para detalhes.</p>`;
+                listaLivrosDiv.innerHTML = `<p class="text-red-500">Erro ao carregar livros.</p>`;
+            }
+            throw error; // Re-throw to propagate the error to DOMContentLoaded or language toggle
+        }
+        // Removed hideSpinner from here
+    }
+
+    async function loadSinonimosData() {
+        logDebugMessage('Attempting to load synonyms data.', 'info');
+        const url = sinonimosUrl;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                logDebugMessage(`Fetch error for synonyms: Status ${response.status}, StatusText: ${response.statusText}, URL: ${url}`, 'error');
+                throw new Error(`Erro ao carregar dados de sinônimos: ${response.statusText}`);
+            }
+            sinonimosData = await response.json();
+            if (!Array.isArray(sinonimosData)) {
+                 logDebugMessage('Invalid JSON data loaded for synonyms. Expected array.', 'error');
+                 sinonimosData = [];
+                 throw new Error('Dados de sinônimos inválidos.');
+            }
+            logDebugMessage(`Dados de sinônimos carregados. Número de entradas: ${sinonimosData.length}`, 'success');
+        } catch (error) {
+            logDebugMessage(`Erro FATAL ao carregar dados de sinônimos: ${error.message}`, 'critical');
+             sinonimosData = [];
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => { // Make it async
+        logDebugMessage('DOM Content Loaded. Initializing app.', 'event');
+        // showSpinner(); // Show spinner immediately on DOMContentLoaded - REMOVED
+
+        try {
+            await loadBibleData('pt'); // Await Portuguese data
+            await loadBibleData('en'); // Await English data
+            await loadSinonimosData(); // Await synonyms data
+
+            logDebugMessage('All initial data loaded. Proceeding with UI setup.', 'info');
+
+            // Log normalized maps for debugging
+            logDebugMessage('Normalized ptBookNameToEnBookName:', 'debug');
+            for (const key in ptBookNameToEnBookName) {
+                logDebugMessage(`  ${key} -> ${ptBookNameToEnBookName[key]}`, 'debug');
+            }
+            logDebugMessage('Normalized enBookNameToPtBookName:', 'debug');
+            for (const key in enBookNameToPtBookName) {
+                logDebugMessage(`  ${key} -> ${enBookNameToPtBookName[key]}`, 'debug');
+            }
+
+
+            modeToggleButton.textContent = (currentLanguage === 'pt') ? 'Modo Parágrafo' : 'Paragraph Mode';
+            searchButton.textContent = (currentLanguage === 'pt') ? 'Buscar' : 'Search';
+            modalSearchButton.textContent = (currentLanguage === 'pt') ? 'Buscar' : 'Search';
+            copyrightInfoDiv.textContent = (currentLanguage === 'pt') ? 'Bíblia King James 1611 - Acesse bkjfiel.com.br' : 'King James Bible - biblehub.com/kjv/genesis/1.htm';
+            updateMainHeading(null, null);
+            updateInstructionsText();
+
+            // Initial display of books and first NT book
+            updateLivrosList(currentLanguage); // This will now populate 'livros' with original names
+            exibirLivros('new', currentLanguage);
+
+            // Set initial book to Matthew 1
+            const initialBookOriginalName = (currentLanguage === 'pt') ? "Mateus" : "Matthew";
+            const initialChapter = 1;
+
+            logDebugMessage(`Abrindo livro inicial no centro: ${initialBookOriginalName} Capítulo: ${initialChapter}`, 'info');
+            await abrirLivroNoCentro(initialBookOriginalName, initialChapter, 'initial', null, true, null); // Await this call
+
+            // hideSpinner(); // Hide spinner ONLY after the initial book is successfully loaded and displayed - REMOVED
+            logDebugMessage('Application fully initialized and spinner hidden.', 'success');
+
+        } catch (e) {
+            logDebugMessage(`Erro FATAL durante a inicialização da aplicação: ${e.message}`, 'critical');
+            document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Erro grave ao carregar a aplicação. Por favor, tente novamente.</p>`;
+            // hideSpinner(); // Ensure spinner is hidden even on error - REMOVED
+        }
+        // Removed the finally block, as hideSpinner is now explicitly called in both try and catch.
+    });
+
+    async function abrirLivroNoCentro(livro, capitulo, source = 'single-click', tabId = null, restoreScroll = true, scrollToVerseFromSource = null) {
+        logDebugMessage(`[abrirLivroNoCentro] START - Attempting to open book: ${livro}, chapter: ${capitulo}, source: ${source}, tabId: ${tabId}, restoreScroll: ${restoreScroll}, scrollToVerse: ${scrollToVerseFromSource}`, 'event');
+        logDebugMessage(`[abrirLivroNoCentro] Current state: livroAtual=${livroAtual}, activeTabId=${activeTabId}`, 'debug');
+
+        let currentData = (currentLanguage === 'pt') ? bibliaData : englishBibliaData;
+        if (!currentData || currentData.length === 0) {
+             logDebugMessage(`[abrirLivroNoCentro] Dados (${currentLanguage}) não carregados. Aborting.`, 'error');
+             document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Dados (${currentLanguage}) não disponíveis.</p>`;
+             if (source === 'language-toggle' || source === 'tab-click') { // Re-enable button if language toggle or tab click caused this error
+                languageToggleButton.disabled = false;
+                logDebugMessage(`[abrirLivroNoCentro] Language toggle button re-enabled due to early error.`, 'debug');
+            }
+             return;
+        }
+        // NEW LOG: Log the structure of the first item in currentData
+        if (currentData.length > 0) {
+            logDebugMessage(`[abrirLivroNoCentro] First item in currentData (${currentLanguage}): ${JSON.stringify(currentData[0]).substring(0, 200)}...`, 'debug');
+        }
+
+
+        try {
+            initialMessageDiv.classList.add('hidden');
+            capitulosContainer.classList.remove('hidden');
+            versiculosDiv.classList.remove('hidden'); // Use global versiculosDiv
+
+            // --- Start: Handle saving previous active tab state ---
+            if (livroAtual && conteudoDiv && activeTabId !== null) {
+                const previousActiveTab = abertoTabs.find(tab => tab.id === activeTabId);
+                if (previousActiveTab) {
+                    // Save the state of the *previously* active tab
+                    previousActiveTab.chapter = livroState[livroAtual]?.currentChapter || 1;
+                    previousActiveTab.scrollTop = conteudoDiv.scrollTop;
+                    logDebugMessage(`[abrirLivroNoCentro] Saved state for previous active tab (ID: ${activeTabId}, Book: ${livroAtual}). Saved Chapter: ${previousActiveTab.chapter}, ScrollTop: ${previousActiveTab.scrollTop}`, 'debug');
+                }
+            }
+            // --- End: Handle saving previous active tab state ---
+
+            let isDesktop = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+            let targetTab = null;
+            let chapterToDisplay = capitulo;
+            let verseToHighlight = scrollToVerseFromSource; // Use the passed verseToHighlight
+
+            if (isDesktop) {
+                if (source === 'double-click' || source === 'search' || source === 'add-to-abertos') { // Added 'add-to-abertos'
+                    const newTabId = Date.now();
+                    const newTab = { id: newTabId, book: livro, chapter: capitulo, scrollTop: conteudoDiv.scrollTop, scrollToVerse: scrollToVerseFromSource }; // 'livro' is original name, capture current scroll
+                    abertoTabs.push(newTab);
+                    activeTabId = newTabId;
+                    logDebugMessage(`[abrirLivroNoCentro] ${source} source: Added new tab to abertoTabs: ${JSON.stringify(newTab)}`, 'debug');
+                    // Removed immediate call to atualizarPainelAbertos here, will be called later
+                } else if (source === 'tab-click') {
+                    targetTab = abertoTabs.find(tab => tab.id === tabId);
+                    if (targetTab) {
+                        activeTabId = tabId;
+                        chapterToDisplay = targetTab.chapter || 1;
+                        verseToHighlight = targetTab.scrollToVerse;
+                        logDebugMessage(`[abrirLivroNoCentro] Tab click: Using saved state from tab (ID: ${activeTabId}). Chapter: ${chapterToDisplay}, Verse to Highlight: ${verseToHighlight}`, 'debug');
+                        // Removed immediate call to atualizarPainelAbertos here, will be called later
+                    } else {
+                        logDebugMessage(`[abrirLivroNoCentro] Tab click: Tab with ID ${tabId} not found. Aborting.`, 'error');
+                        if (source === 'language-toggle' || source === 'tab-click') { // Re-enable button if language toggle or tab click caused this error
+                            languageToggleButton.disabled = false;
+                            logDebugMessage(`[abrirLivroNoCentro] Language toggle button re-enabled due to tab not found.`, 'debug');
+                        }
+                        return;
+                    }
+                } else if (source === 'nav-button' || source === 'mode-toggle' || source === 'language-toggle' || source === 'initial') {
+                    // For these sources, verseToHighlight is passed directly or is null
+                } else {
+                    activeTabId = null;
+                    logDebugMessage(`[abrirLivroNoCentro] Single click on book list. No active tab set.`, 'debug');
+                }
+            } else { // Mobile
+                if (livrosElement.classList.contains('visible-mobile')) {
+                    logDebugMessage(`[abrirLivroNoCentro] Mobile detected and book list visible, toggling book list.`, 'debug');
+                    toggleBookList();
+                }
+                activeTabId = null;
+            }
+
+            livroAtual = livro; // livroAtual stores the original accented name
+            livroState[livro] = livroState[livro] || {}; // Key in livroState is the original accented name
+            livroState[livro].currentChapter = chapterToDisplay; // Update the current chapter for this book
+
+            // --- Start: Update the active tab's chapter immediately if it's the current tab ---
+            // This block ensures the chapter number in the 'Abertos' panel updates instantly
+            if (activeTabId !== null) {
+                const currentActiveTab = abertoTabs.find(tab => tab.id === activeTabId);
+                if (currentActiveTab) {
+                    currentActiveTab.chapter = chapterToDisplay; // Update the chapter in the tab object
+                    logDebugMessage(`[abrirLivroNoCentro] Updated chapter for current active tab (ID: ${activeTabId}) to ${chapterToDisplay}.`, 'debug');
+                }
+            }
+            // --- End: Update the active tab's chapter immediately ---
+
+            // Check if the book exists in the current language data using its normalized name
+            const bookExistsInCurrentData = currentData.some(v => v.book_name === normalizeBookName(livro));
+            logDebugMessage(`[abrirLivroNoCentro] Book "${livro}" (normalized: ${normalizeBookName(livro)}) exists in current ${currentLanguage} data: ${bookExistsInCurrentData}`, 'debug');
+            if (!bookExistsInCurrentData) {
+                logDebugMessage(`[abrirLivroNoCentro] Book "${livro}" not found in ${currentLanguage} data. Displaying initial message.`, 'warn');
+                initialMessageDiv.classList.remove('hidden');
+                capitulosContainer.classList.add('hidden');
+                versiculosDiv.classList.add('hidden'); // Use global versiculosDiv
+                document.getElementById('versiculos').innerHTML = '';
+                // Chame updateMainHeading aqui também para resetar o título
+                updateMainHeading(null, null);
+                pageTitle.textContent = (currentLanguage === 'pt') ? 'Bíblia Interativa' : 'Interactive Bible';
+                if (source === 'language-toggle') { // Re-enable button if book not found due to language toggle
+                    languageToggleButton.disabled = false;
+                    logDebugMessage(`[abrirLivroNoCentro] Language toggle button re-enabled because book "${livro}" not found after toggle.`, 'debug');
+                }
+                return; // Exit the function early
+            }
+
+
+            logDebugMessage(`[abrirLivroNoCentro] Calling exibirCapitulos for ${livro}`, 'debug');
+            try { exibirCapitulos(livro); } catch (e) { logDebugMessage(`[abrirLivroNoCentro] Erro exibir capítulos ${livro}: ${e.message}`, 'error'); capitulosContainer.innerHTML = `<p class="text-red-500">Erro ao exibir capítulos.</p>`; }
+
+            logDebugMessage(`[abrirLivroNoCentro] Calling exibirVersiculos for ${livro}, chapter ${chapterToDisplay} with verseToHighlight: ${verseToHighlight} and restoreScroll: ${restoreScroll}, source: ${source}`, 'debug');
+            await exibirVersiculos(livro, chapterToDisplay, verseToHighlight, restoreScroll, source); // AWAIT HERE
+
+            // Atualiza o cabeçalho principal AQUI, após livroAtual e chapterToDisplay estarem definidos
+            updateMainHeading(livroAtual, chapterToDisplay);
+
+            // Call atualizarPainelAbertos to re-render the tabs with the updated chapter
+            let isDesktop2 = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+            if (isDesktop2) {
+               atualizarPainelAbertos();
+            }
+
+        } catch (e) {
+             logDebugMessage(`[abrirLivroNoCentro] Erro geral: ${e.message}`, 'critical');
+             document.getElementById('conteudo').innerHTML = `<p class="text-red-500">Erro ao abrir livro.</p>`;
+             if (source === 'language-toggle' || source === 'tab-click') { // Re-enable button on general error
+                languageToggleButton.disabled = false;
+                logDebugMessage(`[abrirLivroNoCentro] Language toggle button re-enabled due to general error.`, 'debug');
+            }
+        }
+    }
+
+    /**
+     * Displays the list of books based on the current language and filter.
+     * @param {string} filter The filter to apply ('new' for New Testament, 'old' for Old Testament, 'all' for all books).
+     * @param {string} lang The language to display books for ('pt' or 'en'). Defaults to currentLanguage.
+     */
+    function exibirLivros(filter = 'all', lang = currentLanguage) {
+      listaLivrosDiv.innerHTML = '';
+      let currentLivros = livros; // Use the global 'livros' list, which now contains original names
+      try {
+          const ntBooksNormalized = newTestamentBooksByLanguage[lang]; // NT book names are normalized
+          let livrosFiltrados = [];
+
+          // Filter based on the normalized name of the book
+          if (filter === 'new') {
+              livrosFiltrados = currentLivros.filter(l => ntBooksNormalized.includes(normalizeBookName(l)));
+          } else if (filter === 'old') {
+              livrosFiltrados = currentLivros.filter(l => !ntBooksNormalized.includes(normalizeBookName(l)));
+          } else {
+              livrosFiltrados = currentLivros;
+          }
+
+
+          if (livrosFiltrados.length === 0) {
+              listaLivrosDiv.innerHTML = `<p>Nenhum livro encontrado (${filter} em ${lang}).</p>`;
+              logDebugMessage(`[exibirLivros] Nenhum livro encontrado para filtro ${filter} em ${lang}.`, 'warn');
+          } else {
+              logDebugMessage(`[exibirLivros] Exibindo ${livrosFiltrados.length} livros para filtro ${filter} em ${lang}`, 'info');
+              livrosFiltrados.forEach(livro => { // 'livro' here is the original accented name
+                const div = document.createElement('div');
+                div.textContent = livro;
+                div.className = 'livro cursor-pointer p-2 rounded-md transition duration-200 ease-in-out';
+                div.setAttribute('data-livro', livro); // Store original name in data attribute
+
+                div.addEventListener('mousedown', (event) => {
+                    if (event.detail === 2) {
+                        event.preventDefault();
+                        logDebugMessage(`[exibirLivros] Mousedown (double-click) on book "${livro}". Preventing default selection.`, 'debug');
+                    }
+                });
+
+                div.addEventListener('click', (event) => {
+                    logDebugMessage(`[exibirLivros] Click event on book: ${livro}, detail: ${event.detail}`, 'event');
+                    if (event.detail === 2) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        logDebugMessage(`[exibirLivros] Double click detected on book: "${livro}". Opening book and adding to 'Abertos'.`, 'event');
+
+                        div.classList.add('double-clicked');
+                        setTimeout(() => {
+                            div.classList.remove('double-clicked');
+                        }, 300);
+
+                        abrirLivroNoCentro(livro, 1, 'double-click', null, true, null); // Pass original name
+                    } else if (event.detail === 1) {
+                         logDebugMessage(`[exibirLivros] Single click detected on book: "${livro}". Opening book in center.`, 'event');
+                         abrirLivroNoCentro(livro, 1, 'single-click', null, true, null); // Pass original name
+                    }
+                });
+
+                listaLivrosDiv.appendChild(div);
+              });
+          }
+          highlightBookFilterButton(filter);
+          currentBookFilter = filter;
+      } catch (e) {
+           logDebugMessage(`[exibirLivros] Erro: ${e.message}`, 'error');
+           listaLivrosDiv.innerHTML = `<p class="text-red-500">Erro ao exibir livros.</p>`;
+      }
+    }
+
+    function highlightBookFilterButton(filter) {
+        filterOtBooksButton.classList.remove('active-filter-button');
+        filterNtBooksButton.classList.remove('active-filter-button');
+        if (filter === 'old') filterOtBooksButton.classList.add('active-filter-button');
+        else if (filter === 'new') filterNtBooksButton.classList.add('active-filter-button');
+    }
+
+    function exibirCapitulos(livro) { // 'livro' here is the original accented name
+      logDebugMessage(`[exibirCapitulos] START - Book: ${livro}`, 'info');
+      capitulosContainer.innerHTML = '';
+      let currentData = (currentLanguage === 'pt') ? bibliaData : englishBibliaData;
+      logDebugMessage(`[exibirCapitulos] currentData available: ${currentData && currentData.length > 0}`, 'debug');
+      if (!currentData || currentData.length === 0) {
+          capitulosContainer.innerHTML = `<p class="text-red-500">Dados (${currentLanguage}) não disponíveis.</p>`;
+          logDebugMessage(`[exibirCapitulos] Dados (${currentLanguage}) não carregados. Aborting.`, 'error');
+          return;
+      }
+      try {
+          // Ensure comparison is with normalized book name from the data against the normalized input 'livro'
+          const filteredVersesForBook = currentData.filter(v => v.book_name === normalizeBookName(livro));
+          logDebugMessage(`[exibirCapitulos] Versículos filtrados para o livro "${livro}" (normalized: ${normalizeBookName(livro)}): ${filteredVersesForBook.length} versículos.`, 'debug');
+
+          const capitulos = [...new Set(filteredVersesForBook.map(v => v.chapter))].sort((a, b) => a - b);
+          logDebugMessage(`[exibirCapitulos] Encontrados ${capitulos.length} capítulos para ${livro}`, 'info');
+          if (capitulos.length === 0) {
+              capitulosContainer.innerHTML = `<p>Nenhum capítulo (${livro} em ${currentLanguage}).</p>`;
+              logDebugMessage(`[exibirCapitulos] Nenhum capítulo encontrado para ${livro} em ${currentLanguage}.`, 'warn');
+          } else {
+              capitulos.forEach(capitulo => {
+                const span = document.createElement('span');
+                span.textContent = capitulo;
+                span.className = 'capitulo cursor-pointer px-3 py-1 rounded-full transition duration-200 ease-in-out text-sm';
+                span.onclick = () => {
+                    const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                    if (activeTab) {
+                         activeTab.scrollToVerse = null;
+                         abrirLivroNoCentro(livroAtual, capitulo, 'nav-button', activeTabId, true, null);
+                    } else {
+                      abrirLivroNoCentro(livroAtual, capitulo, 'nav-button', null, true, null);
+                    }
+                    logDebugMessage(`[exibirCapitulos] Clicked chapter ${capitulo} for book ${livro}.`, 'event');
+                };
+                capitulosContainer.appendChild(span);
+              });
+              logDebugMessage(`[exibirCapitulos] Capítulos exibidos para ${livro}.`, 'info');
+          }
+      } catch (e) {
+           logDebugMessage(`[exibirCapitulos] Erro: ${e.message}`, 'error');
+           capitulosContainer.innerHTML = `<p class="text-red-500">Erro ao exibir capítulos.</p>`;
+      }
+    }
+
+    function groupVersesIntoParagraphs(versesArray) {
+        const paragraphs = [];
+        let currentParagraph = [];
+
+        versesArray.forEach((verse, index) => {
+            const startsNewParagraph = index === 0 || verse.text.includes('<pb/>');
+
+            if (startsNewParagraph && currentParagraph.length > 0) {
+                paragraphs.push(currentParagraph);
+                currentParagraph = [];
+            }
+            currentParagraph.push(verse);
+        });
+
+        if (currentParagraph.length > 0) {
+            paragraphs.push(currentParagraph);
+        }
+        return paragraphs;
+    }
+
+    async function exibirVersiculos(livro, capitulo, verseToHighlight = null, restoreScroll = true, source = 'unknown') { // 'livro' here is the original accented name
+      logDebugMessage(`[exibirVersiculos] START - Book: ${livro}, Chapter: ${capitulo}, verseToHighlight: ${verseToHighlight}, restoreScroll: ${restoreScroll}, source: ${source}`, 'info');
+      versiculosDiv.innerHTML = '';
+      let currentData = (currentLanguage === 'pt') ? bibliaData : englishBibliaData;
+      if (!currentData || currentData.length === 0) {
+           versiculosDiv.innerHTML = `<p class="text-red-500">Dados (${currentLanguage}) não disponíveis.</p>`;
+           logDebugMessage(`[exibirVersiculos] Dados (${currentLanguage}) não carregados. Aborting.`, 'error');
+           if (source === 'language-toggle' || source === 'tab-click') { // Re-enable button if language toggle or tab click caused this error
+                languageToggleButton.disabled = false;
+                logDebugMessage(`[exibirVersiculos] Language toggle button re-enabled due to data not available.`, 'debug');
+            }
+           return;
+      }
+      try {
+          // Ensure comparison is with normalized book name
+          const versiculos = currentData.filter(v => v.book_name === normalizeBookName(livro) && v.chapter === capitulo);
+          logDebugMessage(`[exibirVersiculos] Encontrados ${versiculos.length} versículos para ${livro} ${capitulo}. Versículos filtrados: ${JSON.stringify(versiculos.slice(0, 5))}`, 'info'); // Log first 5 verses
+
+          if (versiculos.length === 0) {
+              versiculosDiv.innerHTML = `<p>Nenhum versículo encontrado para ${livro} ${capitulo} em ${currentLanguage}.</p>`;
+              logDebugMessage(`[exibirVersiculos] Nenhum versículo encontrado para ${livro} ${capitulo} em ${currentLanguage}.`, 'warn');
+          } else {
+
+            if (paragraphMode) {
+                logDebugMessage(`[exibirVersiculos] Paragraph Mode enabled.`, 'debug');
+                const paragraphContainer = document.createElement('div');
+                paragraphContainer.className = 'paragraph-mode-container';
+
+                const groupedParagraphs = groupVersesIntoParagraphs(versiculos);
+
+                groupedParagraphs.forEach(paragraphVerses => {
+                    if (paragraphVerses.length === 0) return;
+
+                    const firstVerseInParagraph = paragraphVerses[0];
+                    const lastVerseInParagraph = paragraphVerses[paragraphVerses.length - 1];
+
+                    const paragraphDiv = document.createElement('div');
+                    paragraphDiv.className = 'verse paragraph mb-2 p-3 rounded-lg shadow-sm';
+                    paragraphDiv.setAttribute('data-book-name', firstVerseInParagraph.original_book_name); // Store original name
+                    paragraphDiv.setAttribute('data-chapter', firstVerseInParagraph.chapter);
+                    paragraphDiv.setAttribute('data-start-verse', firstVerseInParagraph.verse);
+                    paragraphDiv.setAttribute('data-end-verse', lastVerseInParagraph.verse);
+
+                    paragraphVerses.forEach(pVerse => {
+                        let verseTextContent = pVerse.text;
+                        verseTextContent = verseTextContent.replace(/<S>.*?<\/S>/gi, '');
+                        verseTextContent = verseTextContent.replace(/(\S+?)(\d+)/g, '$1');
+                        verseTextContent = verseTextContent.replace(/<J>(.*?)<\/J>/gi, '<span class="text-yellow-j">$1</span>');
+                        verseTextContent = verseTextContent.replace(/<pb\/>/gi, '');
+
+                        const verseSpan = document.createElement('span');
+                        verseSpan.className = 'verse-content-part';
+                        verseSpan.innerHTML = `<span class="verse-number">${pVerse.verse}</span>${verseTextContent.trim()} `;
+                        paragraphDiv.appendChild(verseSpan);
+                    });
+
+                    paragraphDiv.addEventListener('dblclick', (event) => {
+                        if (currentLanguage === 'pt') {
+                            const bookNameOriginal = paragraphDiv.getAttribute('data-book-name'); // This is the original name
+                            const englishBookNameNormalized = ptBookNameToEnBookName[normalizeBookName(bookNameOriginal)] || normalizeBookName(bookNameOriginal); // Normalize for lookup
+                            const chapter = parseInt(paragraphDiv.getAttribute('data-chapter'));
+                            const startVerse = parseInt(paragraphDiv.getAttribute('data-start-verse'));
+                            const endVerse = parseInt(paragraphDiv.getAttribute('data-end-verse'));
+
+                            const englishVersesInChapter = englishBibliaData.filter(
+                                v => v.book_name === englishBookNameNormalized && v.chapter === chapter
+                            );
+
+                            const relevantEnglishVerses = englishVersesInChapter.filter(
+                                v => v.verse >= startVerse && v.verse <= endVerse
+                            );
+
+                            let combinedEnglishHtml = '';
+                            if (relevantEnglishVerses.length > 0) {
+                                relevantEnglishVerses.forEach((engVerse) => {
+                                    let verseContent = engVerse.text;
+                                    verseContent = engVerse.text.replace(/<S>.*?<\/S>/gi, '');
+                                    verseContent = verseContent.replace(/(\S+?)(\d+)/g, '$1');
+                                    verseContent = verseContent.replace(/<J>(.*?)<\/J>/gi, '<span class="text-yellow-j">$1</span>');
+                                    verseContent = verseContent.replace(/<pb\/>/gi, '<div class="mt-4"></div>');
+
+                                    combinedEnglishHtml += `<span class="verse-number">${engVerse.verse}</span>${verseContent.trim()} `;
+                                });
+                            }
+
+                            if (relevantEnglishVerses.length > 0) {
+                                englishVerseContentDiv.innerHTML = combinedEnglishHtml.trim();
+                                // Use the original English book name for display
+                                const originalEnglishBookName = relevantEnglishVerses[0].original_book_name;
+                                let referenceText = `${originalEnglishBookName} ${chapter}`;
+                                if (startVerse && endVerse) {
+                                    referenceText += `:${startVerse}`;
+                                    if (startVerse !== endVerse) {
+                                        referenceText += `-${endVerse}`;
+                                    }
+                                }
+                                referenceText += ' (KJV)';
+                                englishVerseReferenceDiv.textContent = referenceText;
+                            } else {
+                                englishVerseContentDiv.textContent = "Parágrafo correspondente não encontrado em inglês.";
+                                englishVerseReferenceDiv.textContent = `(Buscando por ${englishBookNameNormalized} Cap ${chapter}, Versos ${startVerse}-${endVerse})`;
+                            }
+                            englishVerseModalOverlay.classList.add('visible');
+                            event.preventDefault();
+                            logDebugMessage(`[exibirVersiculos] Double clicked paragraph. Showing English modal.`, 'event');
+                        }
+                    });
+
+                    paragraphContainer.appendChild(paragraphDiv);
+                });
+                versiculosDiv.appendChild(paragraphContainer);
+                logDebugMessage(`[exibirVersiculos] Paragraph mode rendering complete.`, 'debug');
+
+            } else { // Verse Mode
+                logDebugMessage(`[exibirVersiculos] Verse Mode enabled.`, 'debug');
+                 versiculos.forEach(verso => {
+                    const div = document.createElement('div');
+                    div.className = 'verse versiculo mb-2 p-3 rounded-lg shadow-sm';
+                    div.setAttribute('data-verse-number', verso.verse);
+                    div.setAttribute('data-book-name', verso.original_book_name); // Store original name
+                    div.setAttribute('data-chapter', verso.chapter);
+                    if (verso.book_number !== undefined) div.setAttribute('data-book-number', verso.book_number);
+                    else logDebugMessage(`[exibirVersiculos] Versículo sem book_number: ${verso.original_book_name} ${verso.chapter}:${verso.verse}`, 'warn');
+
+                    const verseContent = document.createElement('div');
+                    verseContent.className = 'verse-content';
+
+                    let verseTextContent = verso.text;
+                    verseTextContent = verseTextContent.replace(/<S>.*?<\/S>/gi, '');
+                    verseTextContent = verseTextContent.replace(/(\S+?)(\d+)/g, '$1');
+                    verseTextContent = verseTextContent.replace(/<J>(.*?)<\/J>/gi, '<span class="text-yellow-j">$1</span>');
+                    verseTextContent = verseTextContent.replace(/<pb\/>/gi, ''); // Changed from ' ' to ''
+
+                    verseContent.innerHTML = `<span class="verse-number">${verso.verse}</span>${verseTextContent}`;
+                    div.appendChild(verseContent);
+
+                     div.addEventListener('click', (event) => {
+                         if (event.ctrlKey) {
+                              event.preventDefault();
+                              const selection = window.getSelection();
+                              if (selection) selection.removeAllRanges();
+
+                              let clickedWord = null;
+                              const verseElement = findAncestorWithClass(event.target, 'verse');
+
+                              if (verseElement) {
+                                  const caretPosition = document.caretPositionFromPoint(event.clientX, event.clientY);
+
+                                  if (caretPosition && caretPosition.offsetNode && caretPosition.offsetNode.nodeType === Node.TEXT_NODE) {
+                                      const textNode = caretPosition.offsetNode;
+                                      const offset = caretPosition.offset;
+                                      let text = textNode.textContent;
+
+                                      text = text.replace(/<S>.*?<\/S>/gi, '');
+
+                                      const wordCharRegex = (currentLanguage === 'pt') ? /[a-zA-ZÀ-ÖØ-öø-ÿ'-]/ : /[a-zA-Z'-]/;
+
+                                      let start = offset;
+                                      while (start > 0 && wordCharRegex.test(text[start - 1])) {
+                                          start--;
+                                      }
+
+                                      let end = offset;
+                                      while (end < text.length && wordCharRegex.test(text[end])) {
+                                          end++;
+                                      }
+
+                                      clickedWord = text.substring(start, end);
+
+                                      clickedWord = clickedWord.replace(/^[^\wÀ-ÖØ-öø-ÿ'-]+|[^\wÀ-ÖØ-öø-ÿ'-]+$/g, '');
+
+                                      logDebugMessage(`[Ctrl+Click] Extracted word from text node: "${clickedWord}"`, 'debug');
+
+                                      if (clickedWord) {
+                                           if (currentLanguage === 'pt') {
+                                               const cleanedClickedWord = removeAccents(clickedWord).toLowerCase();
+                                               const sinonimoEntry = sinonimosData.find(entry =>
+                                                   entry.keyword && removeAccents(entry.keyword).toLowerCase() === cleanedClickedWord
+                                               );
+
+                                               if (sinonimoEntry) {
+                                                   logDebugMessage(`[Ctrl+Click] Sinônimo encontrado para "${clickedWord}".`, 'info');
+                                                   sinonimosKeywordDiv.textContent = clickedWord;
+                                                   sinonimosLinesList.innerHTML = '';
+                                                   if (sinonimoEntry.lines && sinonimoEntry.lines.length > 0) {
+                                                       sinonimoEntry.lines.forEach(line => {
+                                                           const li = document.createElement('li');
+                                                           li.textContent = line;
+                                                           sinonimosLinesList.appendChild(li);
+                                                       });
+                                                   } else {
+                                                       const li = document.createElement('li');
+                                                       li.textContent = "Nenhuma informação adicional encontrada.";
+                                                       sinonimosLinesList.appendChild(li);
+                                                   }
+                                                   showSinonimosModal();
+                                               } else {
+                                                   logDebugMessage(`[Ctrl+Click] Nenhum sinônimo encontrado para "${clickedWord}".`, 'info');
+                                                   sinonimosKeywordDiv.textContent = clickedWord;
+                                                   sinonimosLinesList.innerHTML = '';
+                                                   const li = document.createElement('li');
+                                                   li.textContent = "Nenhuma informação adicional encontrada para esta palavra.";
+                                                   sinonimosLinesList.appendChild(li);
+                                                   showSinonimosModal();
+                                               }
+                                           } else if (currentLanguage === 'en') {
+                                                const etymonlineUrl = `https://www.etymonline.com/word/${encodeURIComponent(clickedWord)}`;
+                                                window.open(etymonlineUrl, '_blank');
+                                                logDebugMessage(`[Ctrl+Click] Opening Etymonline for: "${clickedWord}"`, 'info');
+                                           }
+                                      } else {
+                                          logDebugMessage('[Ctrl+Click] Nenhuma palavra clicada identificada após extração.', 'warn');
+                                      }
+                                  } else {
+                                      logDebugMessage('[Ctrl+Click] Não clicou em um nó de texto válido.', 'warn');
+                                  }
+                              } else {
+                                  logDebugMessage('[Ctrl+Click] Elemento de versículo não encontrado para o clique.', 'warn');
+                              }
+                         } else if (event.shiftKey) {
+                              const highlightedSpan = findAncestorWithClass(event.target, 'highlighted');
+                              if (highlightedSpan) {
+                                  removeHighlightSpan(highlightedSpan);
+                                  logDebugMessage('[Shift+Click] Removed highlight.', 'event');
+                              }
+                         }
+                     });
+                     if (currentLanguage === 'pt') {
+                         div.addEventListener('dblclick', (event) => {
+                             const bookNumber = parseInt(div.getAttribute('data-book-number'));
+                             const chapter = parseInt(div.getAttribute('data-chapter'));
+                             const verseNum = parseInt(div.getAttribute('data-verse-number'));
+                             // Find English verse using normalized book_name for lookup
+                             const englishVerse = englishBibliaData.find(v => v.book_number === bookNumber && v.chapter === chapter && v.verse === verseNum);
+                             if (englishVerse) {
+                                 let englishVerseText = englishVerse.text;
+                                 englishVerseText = englishVerseText.replace(/<S>.*?<\/S>/gi, '');
+                                 englishVerseText = englishVerseText.replace(/(\S+?)(\d+)/g, '$1');
+                                 englishVerseText = englishVerseText.replace(/<J>(.*?)<\/J>/gi, '<span class="text-yellow-j">$1</span>');
+                                 englishVerseText = englishVerseText.replace(/<pb\/>/gi, ' ');
+
+                                 englishVerseContentDiv.innerHTML = englishVerseText;
+                                 // Use original_book_name for display
+                                 englishVerseReferenceDiv.textContent = `${englishVerse.original_book_name} ${englishVerse.chapter}:${englishVerse.verse} (KJV)`;
+                             } else {
+                                  englishVerseContentDiv.textContent = "Versículo correspondente não encontrado em inglês.";
+                                  englishVerseReferenceDiv.textContent = `(Buscando por Livro #${bookNumber}, Cap ${chapter}, Ver ${verso.verse})`;
+                             }
+                             englishVerseModalOverlay.classList.add('visible');
+                             event.preventDefault();
+                             logDebugMessage(`[exibirVersiculos] Double clicked verse. Showing English modal.`, 'event');
+                         });
+                     }
+
+                    versiculosDiv.appendChild(div);
+                 });
+                 logDebugMessage(`[exibirVersiculos] Verse mode rendering complete.`, 'debug');
+            }
+          }
+
+          const capitulosDoLivro = [...new Set(currentData.filter(v => v.book_name === normalizeBookName(livro)).map(v => v.chapter))].sort((a, b) => a - b);
+          const indexCapituloAtual = capitulosDoLivro.indexOf(capitulo);
+
+          const livrosAtualIndex = livros.indexOf(livro); // Get the index of the current book (original name)
+
+          // Declare buttons at the top of the function scope
+          const prevButton = document.createElement('span');
+          const nextButton = document.createElement('span');
+          const navContainer = document.createElement('div');
+
+          let capituloAnterior = null;
+          let capituloSeguinte = null;
+          let prevBookOriginalName = null;
+          let nextBookOriginalName = null;
+          // let lastChapterOfPrevBook = null; // This variable is no longer needed for the "Previous Book" logic
+
+          // Logic for "Previous" button
+          prevButton.className = 'chapter-nav-button'; // Apply base class
+          if (indexCapituloAtual > 0) {
+              capituloAnterior = capitulosDoLivro[indexCapituloAtual - 1];
+              prevButton.textContent = currentLanguage === 'pt' ? '← Anterior' : '← Previous';
+              prevButton.classList.remove('disabled');
+              prevButton.onclick = () => {
+                  const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                  if (activeTab) {
+                      activeTab.scrollToVerse = null;
+                       abrirLivroNoCentro(livroAtual, capituloAnterior, 'nav-button', activeTabId, false, null);
+                  } else {
+                       abrirLivroNoCentro(livroAtual, capituloAnterior, 'nav-button', null, false, null);
+                  }
+                  logDebugMessage(`[exibirCapitulos] Navigated to previous chapter: ${capituloAnterior}.`, 'event');
+              };
+          } else { // First chapter of the current book
+              const prevBookIndex = livrosAtualIndex - 1;
+              if (prevBookIndex >= 0) {
+                  prevBookOriginalName = livros[prevBookIndex];
+                  // The change is here: always go to chapter 1 of the previous book
+                  prevButton.textContent = currentLanguage === 'pt' ? '← Livro Anterior' : '← Previous Book';
+                  prevButton.classList.remove('disabled');
+                  prevButton.onclick = () => {
+                      const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                      if (activeTab) {
+                          activeTab.scrollToVerse = null;
+                          abrirLivroNoCentro(prevBookOriginalName, 1, 'nav-button', activeTabId, false, null); // Changed to 1
+                      } else {
+                          abrirLivroNoCentro(prevBookOriginalName, 1, 'nav-button', null, false, null); // Changed to 1
+                      }
+                      logDebugMessage(`[exibirCapitulos] Navigated to previous book: ${prevBookOriginalName} chapter 1.`, 'event');
+                  };
+              } else {
+                  prevButton.classList.add('disabled');
+              }
+          }
+
+          // Logic for "Next" button
+          nextButton.className = 'chapter-nav-button'; // Apply base class
+          if (indexCapituloAtual < capitulosDoLivro.length - 1) {
+              capituloSeguinte = capitulosDoLivro[indexCapituloAtual + 1];
+              nextButton.textContent = currentLanguage === 'pt' ? 'Próximo →' : 'Next →';
+              nextButton.classList.remove('disabled');
+              nextButton.onclick = () => {
+                  const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                  if (activeTab) {
+                      activeTab.scrollToVerse = null;
+                       abrirLivroNoCentro(livroAtual, capituloSeguinte, 'nav-button', activeTabId, false, null);
+                  } else {
+                       abrirLivroNoCentro(livroAtual, capituloSeguinte, 'nav-button', null, false, null);
+                  }
+                  logDebugMessage(`[exibirCapitulos] Navigated to next chapter: ${capituloSeguinte}.`, 'event');
+              };
+          } else { // Last chapter of the current book
+              const nextBookIndex = livrosAtualIndex + 1;
+              if (nextBookIndex < livros.length) {
+                  nextBookOriginalName = livros[nextBookIndex];
+                  nextButton.textContent = currentLanguage === 'pt' ? 'Próximo Livro →' : 'Next Book →';
+                  nextButton.classList.remove('disabled');
+                  nextButton.onclick = () => {
+                      const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                      if (activeTab) {
+                          activeTab.scrollToVerse = null;
+                          abrirLivroNoCentro(nextBookOriginalName, 1, 'nav-button', activeTabId, false, null);
+                      } else {
+                          abrirLivroNoCentro(nextBookOriginalName, 1, 'nav-button', null, false, null);
+                      }
+                      logDebugMessage(`[exibirCapitulos] Navigated to next book: ${nextBookOriginalName} chapter 1.`, 'event');
+                  };
+              } else {
+                  nextButton.classList.add('disabled');
+              }
+          }
+
+          navContainer.className = 'flex justify-between mt-4';
+          navContainer.appendChild(prevButton);
+          navContainer.appendChild(nextButton);
+          versiculosDiv.appendChild(navContainer);
+
+          livroState[livro] = livroState[livro] || {};
+          livroState[livro].currentChapter = capitulo;
+
+          const capituloBotoes = capitulosContainer.querySelectorAll('.capitulo');
+          capituloBotoes.forEach(botao => {
+              botao.classList.remove('active');
+          });
+          const botaoAtivo = Array.from(capituloBotoes).find(b => parseInt(b.textContent) === capitulo);
+          if (botaoAtivo) botaoAtivo.classList.add('active');
+          logDebugMessage(`[exibirVersiculos] Botão de capítulo ativo para ${capitulo} marcado.`, 'debug');
+
+          // Return a Promise that resolves after the setTimeout
+          return new Promise(resolve => {
+              setTimeout(() => {
+                  if (conteudoDiv) {
+                      conteudoDiv.style.scrollBehavior = 'auto';
+                      let scrolled = false;
+
+                      logDebugMessage(`[exibirVersiculos - Scroll Logic] Livro: ${livro}, Capítulo: ${capitulo}`, 'debug');
+                      logDebugMessage(`[exibirVersiculos - Scroll Logic] restoreScroll: ${restoreScroll}`, 'debug');
+                      logDebugMessage(`[exibirVersiculos - Scroll Logic] livroState[${livro}] state: ${JSON.stringify(livroState[livro])}`, 'debug');
+                      logDebugMessage(`[exibirVersiculos - Scroll Logic] verseToHighlight: ${verseToHighlight}`, 'debug');
+
+                      let savedScrollTop = 0;
+                      const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+                      if (activeTab && activeTab.scrollTop !== undefined) {
+                           savedScrollTop = activeTab.scrollTop;
+                           logDebugMessage(`[exibirVersiculos - Scroll Logic] Found saved scrollTop for active tab (ID: ${activeTabId}): ${savedScrollTop}`, 'debug');
+                       } else {
+                           logDebugMessage(`[exibirVersiculos - Scroll Logic] No saved scrollTop found for active tab (ID: ${activeTabId}).`, 'debug');
+                       }
+
+                      if (verseToHighlight !== null && verseToHighlight !== undefined) {
+                          let targetElement = null;
+                          if (paragraphMode) {
+                              // Find the paragraph that contains the verseToHighlight
+                              const allParagraphs = versiculosDiv.querySelectorAll('.paragraph');
+                              for (const paragraphDiv of allParagraphs) {
+                                  const startVerse = parseInt(paragraphDiv.getAttribute('data-start-verse'));
+                                  const endVerse = parseInt(paragraphDiv.getAttribute('data-end-verse'));
+                                  if (verseToHighlight >= startVerse && verseToHighlight <= endVerse) {
+                                      targetElement = paragraphDiv;
+                                      break;
+                                  }
+                              }
+                          } else { // Verse Mode
+                              targetElement = versiculosDiv.querySelector(`.verse[data-verse-number="${verseToHighlight}"]`);
+                          }
+
+                          if (targetElement) {
+                               targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                               logDebugMessage(`[exibirVersiculos] Scrolling to target element for verse ${verseToHighlight}.`, 'info');
+
+                               targetElement.classList.add('highlight-animation');
+                               setTimeout(() => {
+                                   targetElement.classList.remove('highlight-animation');
+                                   const currentActiveTab = abertoTabs.find(tab => tab.id === activeTabId);
+                                   if (currentActiveTab) {
+                                       currentActiveTab.scrollToVerse = null;
+                                       logDebugMessage(`[exibirVersiculos - Scroll Logic] Cleared scrollToVerse for tab (ID: ${currentActiveTab.id}) after animation.`, 'debug');
+                                   }
+                                   verseToRestoreOnModeChange = null; // Clear after use
+                                   logDebugMessage(`[exibirVersiculos - Scroll Logic] Cleared verseToRestoreOnModeChange.`, 'debug');
+                               }, 500);
+
+                               scrolled = true;
+                          } else {
+                              logDebugMessage(`[exibirVersiculos] Target element for verse ${verseToHighlight} not found.`, 'warn');
+                          }
+                      }
+
+                      if (!scrolled && restoreScroll && activeTab && activeTab.scrollTop !== undefined) {
+                          logDebugMessage(`[exibirVersiculos] Attempting to restore scroll from active tab (ID: ${activeTabId}). Saved scrollTop: ${activeTab.scrollTop}`, 'debug');
+                          conteudoDiv.scrollTop = activeTab.scrollTop;
+                          logDebugMessage(`[exibirVersiculos] Restored scroll position from active tab: ${conteudoDiv.scrollTop}`, 'info');
+                          scrolled = true;
+                       }
+                       else if (!scrolled && restoreScroll && livroState[livro] && livroState[livro].scrollTop !== undefined) {
+                           logDebugMessage(`[exibirVersiculos] Attempting to restore scroll from livroState for ${livro}. Saved scrollTop: ${livroState[livro].scrollTop}`, 'debug');
+                           conteudoDiv.scrollTop = livroState[livro].scrollTop;
+                           logDebugMessage(`[exibirVersiculos] Restored scroll position from livroState: ${conteudoDiv.scrollTop}`, 'info');
+                           scrolled = true;
+                       }
+
+                      if (!scrolled) {
+                           conteudoDiv.scrollTop = 0;
+                           logDebugMessage(`[exibirVersiculos] No scroll position to restore or verse to scroll to, scrolling to top.`, 'info');
+                      }
+
+                      // Re-enable language toggle button AFTER content is displayed and scrolled
+                      if (source === 'language-toggle' || source === 'tab-click') {
+                          languageToggleButton.disabled = false;
+                          logDebugMessage(`[exibirVersiculos] Language toggle button re-enabled after content displayed and scrolled.`, 'debug');
+                      }
+                  }
+                  resolve(); // Resolve the promise after all rendering and scrolling logic
+              }, 50);
+          });
+
+          // Update main heading to show book name and chapter
+          updateMainHeading(livro, capitulo); // 'livro' is original accented name
+          pageTitle.textContent = `${livro} - ${capitulo}`;
+          logDebugMessage(`[exibirVersiculos] Page title and mainHeading updated.`, 'debug');
+      } catch (e) {
+           logDebugMessage(`[exibirVersiculos] Error: ${e.message}`, 'error');
+           versiculosDiv.innerHTML = `<p class="text-red-500">Erro ao exibir versículos.</p>`;
+           if (source === 'language-toggle' || source === 'tab-click') { // Re-enable button on error within exibirVersiculos
+                languageToggleButton.disabled = false;
+                logDebugMessage(`[exibirVersiculos] Language toggle button re-enabled due to error in rendering.`, 'debug');
+            }
+      }
+    }
+
+    function fecharLivroAberto(tabId) {
+      logDebugMessage(`[fecharLivroAberto] Attempting to close tab with ID: ${tabId}`, 'event');
+      try {
+          const tabIndexToRemove = abertoTabs.findIndex(tab => tab.id === tabId);
+          if (tabIndexToRemove !== -1) {
+              const removedTab = abertoTabs.splice(tabIndexToRemove, 1)[0];
+              logDebugMessage(`[fecharLivroAberto] Tab removed: ${JSON.stringify(removedTab)}`, 'debug');
+              let isDesktop = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+              if (isDesktop) {
+                  if (removedTab.id === activeTabId) {
+                      logDebugMessage(`[fecharLivroAberto] Active tab closed.`, 'info');
+                      if (abertoTabs.length > 0) {
+                          const lastTab = abertoTabs[abertoTabs.length - 1];
+                          logDebugMessage(`[fecharLivroAberto] Opening last tab: ${JSON.stringify(lastTab)}`, 'info');
+                          abrirLivroNoCentro(lastTab.book, lastTab.chapter, 'tab-click', lastTab.id, true, lastTab.scrollToVerse);
+                      } else {
+                          logDebugMessage(`[fecharLivroAberto] No open tabs, clearing content.`, 'info');
+                          document.getElementById('capitulosContainer').innerHTML = '';
+                          document.getElementById('versiculos').innerHTML = '';
+
+                          initialMessageDiv.classList.remove('hidden');
+                          capitulosContainer.classList.add('hidden');
+                          versiculosDiv.classList.add('hidden'); // Use global versiculosDiv
+
+
+                          livroAtual = null; activeTabId = null;
+                          updateMainHeading(null, null); // Reset main heading
+                          logDebugMessage(`[fecharLivroAberto] State after closing last tab: livroAtual=${livroAtual}, activeTabId=${activeTabId}`, 'debug');
+                          for (const book in livroState) if (livroState[book]) delete livroState[book].scrollTop;
+                      }
+                  }
+                  atualizarPainelAbertos();
+              } else {
+                   if (removedTab.id === activeTabId && abertoTabs.length === 0) {
+                       logDebugMessage(`[fecharLivroAberto] Mobile: Active tab closed and no other tab open, clearing content.`, 'info');
+                       document.getElementById('capitulosContainer').innerHTML = '';
+                       document.getElementById('versiculos').innerHTML = '';
+
+                       initialMessageDiv.classList.remove('hidden');
+                       capitulosContainer.classList.add('hidden');
+                       versiculosDiv.classList.add('hidden'); // Use global versiculosDiv
+
+                       livroAtual = null; activeTabId = null;
+                       updateMainHeading(null, null); // Reset main heading
+                       logDebugMessage(`[fecharLivroAberto] Mobile State after closing last tab: livroAtual=${livroAtual}, activeTabId=${activeTabId}`, 'debug');
+                       for (const book in livroState) if (livroState[book]) delete livroState[book].scrollTop;
+                   }
+              }
+          }
+      } catch (e) {
+           logDebugMessage(`[fecharLivroAberto] Erro: ${e.message}`, 'error');
+           let isDesktop3 = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+           if (isDesktop3) {
+               document.getElementById('favoritos').innerHTML = `<h4 class="font-semibold mb-4">Abertos</h4><p class="text-red-500">Erro ao fechar livro.</p>`;
+           }
+      }
+    }
+
+    function atualizarPainelAbertos() {
+      const container = document.getElementById('favoritos');
+      let isDesktop = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+      if (!isDesktop) {
+          logDebugMessage(`[atualizarPainelAbertos] Not desktop, skipping panel update.`, 'debug');
+          return;
+      }
+
+      abertoTabsContainer.innerHTML = '';
+
+      try {
+          let hiddenForcer = document.getElementById('hidden-width-forcer');
+          if (!hiddenForcer) {
+              hiddenForcer = document.createElement('span');
+              hiddenForcer.id = 'hidden-width-forcer';
+              container.appendChild(hiddenForcer);
+          }
+          hiddenForcer.textContent = getLongestBookName(currentLanguage) + ' ';
+
+          if (abertoTabs.length === 0) {
+              logDebugMessage(`[atualizarPainelAbertos] Não há abas abertas.`, 'info');
+              return;
+          }
+
+          logDebugMessage(`[atualizarPainelAbertos] Atualizando painel com ${abertoTabs.length} abas: ${JSON.stringify(abertoTabs)}`, 'debug');
+
+          abertoTabs.forEach(tab => { // tab.book is the original accented name
+            const div = document.createElement('div');
+            div.className = 'aba-livro';
+            div.setAttribute('draggable', true);
+            div.setAttribute('data-tab-id', tab.id);
+            if (tab.id === activeTabId) div.classList.add('active-aba');
+
+            div.addEventListener('dragstart', (e) => {
+                draggedItem = div; e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', tab.id);
+                setTimeout(() => div.classList.add('dragging'), 0);
+                logDebugMessage(`[atualizarPainelAbertos] Drag start for tab ID: ${tab.id}`, 'event');
+            });
+            div.addEventListener('dragover', (e) => {
+                e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+                const targetItem = e.target.closest('.aba-livro');
+                if (targetItem && targetItem !== draggedItem) {
+                    const targetItemId = parseInt(targetItem.getAttribute('data-tab-id'));
+                    const draggedItemId = parseInt(draggedItem.getAttribute('data-tab-id'));
+                    const targetIndex = abertoTabs.findIndex(t => t.id === targetItemId);
+                    const draggedIndex = abertoTabs.findIndex(t => t.id === draggedItemId);
+                    if (targetIndex !== -1 && draggedIndex !== -1) {
+                        const [movedItem] = abertoTabs.splice(draggedIndex, 1);
+                        const rect = targetItem.getBoundingClientRect();
+                        const middleY = rect.top + rect.height / 2;
+                        if (e.clientY < middleY) {
+                            abertoTabs.splice(targetIndex, 0, movedItem);
+                            abertoTabsContainer.insertBefore(draggedItem, targetItem);
+                        } else {
+                            abertoTabs.splice(targetIndex + 1, 0, movedItem);
+                            abertoTabsContainer.insertBefore(draggedItem, targetItem.nextSibling);
+                        }
+                        logDebugMessage(`[atualizarPainelAbertos] Drag over: Reordered tabs.`, 'debug');
+                    }
+                }
+            });
+            div.addEventListener('dragend', () => {
+                if(draggedItem) draggedItem.classList.remove('dragging');
+                draggedItem = null;
+                // REMOVED: atualizarPainelAbertos(); // This rebuilds the entire panel and likely reverts visual changes
+                logDebugMessage(`[atualizarPainelAbertos] Drag end.`, 'event');
+            });
+
+            const spanNome = document.createElement('span');
+            spanNome.textContent = `${tab.book}${tab.chapter ? ' ' + tab.chapter : ''}`; // tab.book is original name
+            spanNome.className = 'flex-grow';
+            const fechar = document.createElement('span');
+            fechar.textContent = '✖';
+            fechar.className = 'fechar cursor-pointer';
+            div.onclick = () => {
+                logDebugMessage(`[atualizarPainelAbertos] Clicked tab: ${tab.book} ${tab.chapter} (ID: ${tab.id}).`, 'event');
+                abrirLivroNoCentro(tab.book, tab.chapter, 'tab-click', tab.id, true, tab.scrollToVerse);
+            };
+            fechar.onclick = (e) => { e.stopPropagation(); fecharLivroAberto(tab.id); logDebugMessage(`[atualizarPainelAbertos] Clicked close button for tab ID: ${tab.id}.`, 'event'); };
+            div.appendChild(spanNome); div.appendChild(fechar); abertoTabsContainer.appendChild(div);
+          });
+           logDebugMessage(`[atualizarPainelAbertos] Painel 'Abertos' atualizado.`, 'info');
+      } catch (e) {
+           logDebugMessage(`[atualizarPainelAbertos] Erro: ${e.message}`, 'error');
+           abertoTabsContainer.innerHTML = `<p class="text-red-500">Erro ao exibir abas.</p>`;
+      }
+    }
+
+    function getLongestBookName(language) {
+        try {
+             let currentData = (language === 'pt') ? bibliaData : englishBibliaData;
+             if (!currentData || currentData.length === 0) return "Nome Longo Padrão";
+             let bookNames = new Set();
+             // Use original_book_name to find the longest name for display purposes
+             bookNames = new Set(currentData.map(v => v.original_book_name));
+             return [...bookNames].reduce((l, b) => b.length > l.length ? b : l, '');
+        } catch (e) { logDebugMessage(`[getLongestBookName] Erro: ${e.message}`, 'error'); return "Nome Longo Padrão"; }
+    }
+
+    function performSearch(query, scope = currentSearchScope) { // Removed searchTermOverride, use query directly
+        logDebugMessage(`[performSearch] Iniciando busca para o termo: "${query}" no escopo: "${scope}"`, 'event');
+        const lowerCaseQuery = query.toLowerCase(); // Use lowerCaseQuery here
+        searchResultsContainer.innerHTML = '';
+
+        if (query.length < 2) {
+            searchResultsContainer.innerHTML = '<p>Digite pelo menos 2 caracteres.</p>';
+            showSearchModal(); highlightFilterButton(scope); updateFilterCounts(0,0,0);
+            logDebugMessage(`[performSearch] Termo de busca muito curto.`, 'warn');
+            return;
+        }
+
+        let currentData = (currentLanguage === 'pt') ? bibliaData : englishBibliaData;
+         if (!currentData || currentData.length === 0) {
+             searchResultsContainer.innerHTML = `<p class="text-red-500">Dados (${currentLanguage}) não disponíveis.</p>`;
+             showSearchModal(); updateFilterCounts(0,0,0);
+             logDebugMessage(`[performSearch] Dados (${currentLanguage}) não carregados para busca. Aborting.`, 'error');
+             return;
+         }
+        try {
+            const searchTermWithoutAccents = removeAccents(lowerCaseQuery);
+            // Filter using normalized book_name for consistency with internal data
+            let allResults = currentData.filter(v => v.text && removeAccents(v.text.toLowerCase()).includes(searchTermWithoutAccents));
+            const ntBooksNormalized = newTestamentBooksByLanguage[currentLanguage]; // NT book names are normalized
+            let newResults = allResults.filter(v => ntBooksNormalized.includes(v.book_name)); // v.book_name is normalized
+            let oldResults = allResults.filter(v => !ntBooksNormalized.includes(v.book_name)); // v.book_name is normalized
+
+            logDebugMessage(`[performSearch] Resultados encontrados: Total=${allResults.length}, NT=${newResults.length}, AT=${oldResults.length}`, 'info');
+
+            updateFilterCounts(newResults.length, oldResults.length, allResults.length);
+
+            let resultsToDisplay = (scope === 'new') ? newResults : (scope === 'old') ? oldResults : allResults;
+
+            if (resultsToDisplay.length === 0) {
+                searchResultsContainer.innerHTML = '<p>Nenhum versículo encontrado.</p>';
+                logDebugMessage(`[performSearch] Nenhum resultado para exibir no escopo ${scope}.`, 'info');
+            } else {
+                logDebugMessage(`[performSearch] Exibindo ${resultsToDisplay.length} resultados para o escopo ${scope}.`, 'info');
+                resultsToDisplay.forEach(verso => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'verse-result';
+                    const verseInfo = document.createElement('div');
+                    verseInfo.className = 'verse-info';
+                    const highlightPattern = buildAccentInsensitiveRegexPattern(query); // Use 'query' for highlighting
+                    const highlightRegex = new RegExp(highlightPattern, 'gi');
+                    let highlightedText = verso.text.replace(highlightRegex, match => `<strong>${match}</strong>`);
+                    highlightedText = highlightedText.replace(/<S>.*?<\/S>/gi, '');
+                    highlightedText = highlightedText.replace(/(\S+?)(\d+)/g, '$1');
+                    highlightedText = highlightedText.replace(/<J>(.*?)<\/J>/gi, '<span class="text-yellow-j">$1</span>');
+                    highlightedText = highlightedText.replace(/<pb\/>/gi, ''); // Changed from ' ' to ''
+
+                    // Use original_book_name for abbreviation and display
+                    const abbreviatedBook = abbreviateBookName(verso.original_book_name);
+                    verseInfo.innerHTML = `<span class="abbreviated-book-name">${abbreviatedBook}</span> <span class="chapter-verse-ref">${verso.chapter}:${verso.verse}</span> - ${highlightedText}`;
+
+                    const openButton = document.createElement('button');
+                    openButton.textContent = currentLanguage === 'pt' ? 'Abrir' : 'Open';
+                    openButton.className = 'open-verse-button';
+                    openButton.onclick = () => {
+                        const bookToOpen = verso.original_book_name; // Pass original name to abrirLivroNoCentro
+                        const chapterToOpen = verso.chapter;
+                        const verseToScrollTo = verso.verse;
+
+                        abrirLivroNoCentro(bookToOpen, chapterToOpen, 'search', null, true, verseToScrollTo);
+                        logDebugMessage(`[performSearch] Clicked "Abrir" for ${bookToOpen} ${chapterToOpen}:${verseToScrollTo}.`, 'event');
+                    };
+                    resultDiv.appendChild(verseInfo); resultDiv.appendChild(openButton);
+                    searchResultsContainer.appendChild(resultDiv);
+                });
+            }
+            showSearchModal(); highlightFilterButton(scope); currentSearchScope = scope;
+            modalSearchInput.value = query; // Use query here
+            logDebugMessage(`[performSearch] Modal de busca exibido.`, 'debug');
+        } catch (e) {
+            logDebugMessage(`[performSearch] Erro: ${e.message}`, 'error');
+            searchResultsContainer.innerHTML = `<p class="text-red-500">Erro na busca.</p>`; showSearchModal();
+        }
+    }
+
+    function highlightFilterButton(scope) {
+        filterNtButton.classList.remove('active-filter'); filterOtButton.classList.remove('active-filter'); filterAllButton.classList.remove('active-filter');
+        if (scope === 'new') filterNtButton.classList.add('active-filter');
+        else if (scope === 'old') filterOtButton.classList.add('active-filter');
+        else if (scope === 'all') filterAllButton.classList.add('active-filter');
+        logDebugMessage(`[highlightFilterButton] Filter button "${scope}" highlighted.`, 'debug');
+    }
+    function updateFilterCounts(newC, oldC, allC) {
+        countNtSpan.textContent = `(${newC})`; countOtSpan.textContent = `(${oldC})`; countAllSpan.textContent = `(${allC})`;
+        logDebugMessage(`[updateFilterCounts] Counts updated: NT=${newC}, OT=${oldC}, All=${allC}.`, 'debug');
+    }
+    function showSearchModal() {
+        logDebugMessage('[showSearchModal] Adding visible class to search modal.', 'debug');
+        searchModalOverlay.classList.add('visible');
+    }
+    function hideSearchModal() {
+        logDebugMessage('[hideSearchModal] Removing visible class from search modal.', 'debug');
+        searchModalOverlay.classList.remove('visible');
+
+        const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+        if (activeTab && activeTab.scrollToVerse !== null && activeTab.scrollToVerse !== undefined) {
+            logDebugMessage(`[hideSearchModal] Triggering highlight for verse ${activeTab.scrollToVerse} on active tab (ID: ${activeTab.id}).`, 'info');
+            const verseToHighlight = activeTab.scrollToVerse;
+            // const versiculosDiv = document.getElementById('versiculos'); // Already global
+
+            let targetElement = null;
+
+            if (paragraphMode) {
+                const verseNumberSpans = versiculosDiv.querySelectorAll('.verse-number');
+                for (const span of verseNumberSpans) {
+                    if (parseInt(span.textContent) === verseToHighlight) {
+                        targetElement = findAncestorWithClass(span, 'verse');
+                        break;
+                    }
+                }
+            } else {
+                targetElement = versiculosDiv.querySelector(`.verse[data-verse-number="${verseToHighlight}"]`);
+            }
+
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetElement.classList.add('highlight-animation');
+                setTimeout(() => {
+                    targetElement.classList.remove('highlight-animation');
+                }, 500);
+            }
+            activeTab.scrollToVerse = null;
+            logDebugMessage(`[hideSearchModal] Cleared scrollToVerse for tab (ID: ${activeTab.id}) after highlight.`, 'debug');
+        }
+    }
+
+    function showSinonimosModal() {
+        logDebugMessage('[showSinonimosModal] Adding visible class to synonyms modal.', 'debug');
+        sinonimosModalOverlay.classList.add('visible');
+    }
+
+    function hideSinonimosModal() {
+        logDebugMessage('[hideSinonimosModal] Removing visible class from synonyms modal.', 'debug');
+        sinonimosModalOverlay.classList.remove('visible');
+    }
+
+    searchButton.addEventListener('click', () => performSearch(searchInput.value.trim(), currentSearchScope)); // Pass searchInput.value
+    searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch(searchInput.value.trim(), currentSearchScope); }}); // Pass searchInput.value
+    modalSearchButton.addEventListener('click', () => performSearch(modalSearchInput.value.trim(), currentSearchScope)); // Pass modalSearchInput.value
+    modalSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); performSearch(modalSearchInput.value.trim(), currentSearchScope); }}); // Pass modalSearchInput.value
+    filterNtButton.addEventListener('click', () => performSearch(modalSearchInput.value.trim(), 'new')); // Pass modalSearchInput.value
+    filterOtButton.addEventListener('click', () => performSearch(modalSearchInput.value.trim(), 'old')); // Pass modalSearchInput.value
+    filterAllButton.addEventListener('click', () => performSearch(modalSearchInput.value.trim(), 'all')); // Pass modalSearchInput.value
+    filterOtBooksButton.addEventListener('click', () => exibirLivros('old'));
+    filterNtBooksButton.addEventListener('click', () => exibirLivros('new'));
+    searchModalOverlay.addEventListener('click', (e) => { if (e.target === searchModalOverlay) hideSearchModal(); });
+    closeSearchModalButton.addEventListener('click', hideSearchModal);
+    document.getElementById('search-modal-content').addEventListener('click', (e) => e.stopPropagation());
+    closeEnglishVerseModalButton.addEventListener('click', () => { englishVerseModalOverlay.classList.remove('visible'); logDebugMessage('[closeEnglishVerseModalButton] English verse modal closed.', 'event'); });
+    englishVerseModalOverlay.addEventListener('click', (e) => { if (e.target === englishVerseModalOverlay) { englishVerseModalOverlay.classList.remove('visible'); logDebugMessage('[englishVerseModalOverlay] English verse modal closed by clicking outside.', 'event'); } });
+    document.getElementById('english-verse-modal-content').addEventListener('click', (e) => e.stopPropagation());
+
+    closeSinonimosModalButton.addEventListener('click', hideSinonimosModal);
+    sinonimosModalOverlay.addEventListener('click', (e) => { if (e.target === sinonimosModalOverlay) { hideSinonimosModal(); logDebugMessage('[sinonimosModalOverlay] Synonyms modal closed by clicking outside.', 'event'); } });
+    sinonimosModalContent.addEventListener('click', (e) => e.stopPropagation());
+
+    // Event listener for the new "Add to Abertos" button
+    addCurrentToAbertosButton.addEventListener('click', () => {
+        if (livroAtual && livroState[livroAtual]?.currentChapter) {
+            const currentChapter = livroState[livroAtual].currentChapter;
+            const currentScrollTop = conteudoDiv.scrollTop;
+
+            logDebugMessage(`[addCurrentToAbertosButton] Adding current book "${livroAtual}" chapter ${currentChapter} to "Abertos" with scrollTop ${currentScrollTop}.`, 'event');
+            // Call abrirLivroNoCentro with a specific source to add it as a new tab
+            abrirLivroNoCentro(livroAtual, currentChapter, 'add-to-abertos', null, true, null);
+        } else {
+            logDebugMessage('[addCurrentToAbertosButton] No book currently open to add to "Abertos".', 'warn');
+        }
+    });
+
+
+    modeToggleButton.addEventListener('click', () => {
+        logDebugMessage('--- Mode Toggle Start ---', 'event');
+
+        // 1. Save current scroll position and top verse
+        if (livroAtual && conteudoDiv) {
+            const allVerses = Array.from(conteudoDiv.querySelectorAll('.verse'));
+            let firstVisibleVerseNumber = null;
+
+            for (const verseElement of allVerses) {
+                const rect = verseElement.getBoundingClientRect();
+                const containerRect = conteudoDiv.getBoundingClientRect();
+
+                // Check if the verse element is at least partially visible at the top of the content area
+                if (rect.top >= containerRect.top && rect.top < containerRect.bottom) {
+                    if (paragraphMode) { // If currently in paragraph mode
+                        firstVisibleVerseNumber = parseInt(verseElement.getAttribute('data-start-verse'));
+                    } else { // If currently in verse mode
+                        firstVisibleVerseNumber = parseInt(verseElement.getAttribute('data-verse-number'));
+                    }
+                    break; // Found the first visible verse
+                }
+            }
+            if (firstVisibleVerseNumber) {
+                verseToRestoreOnModeChange = firstVisibleVerseNumber;
+                logDebugMessage(`[modeToggleButton] Saved verse to restore: ${verseToRestoreOnModeChange}`, 'debug');
+            } else {
+                logDebugMessage(`[modeToggleButton] No visible verse found to save.`, 'warn');
+            }
+        } else {
+            logDebugMessage(`[modeToggleButton] livroAtual or conteudoDiv not ready, cannot save scroll.`, 'warn');
+        }
+
+        // 2. Toggle paragraphMode
+        paragraphMode = !paragraphMode;
+        if (currentLanguage === 'pt') {
+            modeToggleButton.textContent = paragraphMode ? 'Modo Versículo' : 'Modo Parágrafo';
+        } else {
+            modeToggleButton.textContent = paragraphMode ? 'Verse Mode' : 'Paragraph Mode';
+        }
+        logDebugMessage(`[modeToggleButton] Paragraph mode toggled to: ${paragraphMode}`, 'event');
+
+        // 3. Re-render content with new mode and restored verse
+        if (livroAtual && livroState[livroAtual]?.currentChapter) {
+            const activeTab = abertoTabs.find(tab => tab.id === activeTabId);
+            const chapterToOpen = livroState[livroAtual].currentChapter;
+            const tabIdToPass = activeTab ? activeTab.id : null;
+
+            abrirLivroNoCentro(livroAtual, chapterToOpen, 'mode-toggle', tabIdToPass, true, verseToRestoreOnModeChange);
+        }
+        logDebugMessage('--- Mode Toggle End ---', 'event');
+    });
+
+    // Help button click handler
+    helpButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        instructionsBox.classList.toggle('visible');
+        logDebugMessage(`[helpButton] Instructions box visibility toggled to: ${instructionsBox.classList.contains('visible')}`, 'event');
+    });
+
+    // Close instructions box when clicking outside
+    document.addEventListener('click', (event) => {
+        if (instructionsBox.classList.contains('visible') && !instructionsBox.contains(event.target) && !helpButton.contains(event.target)) {
+            instructionsBox.classList.remove('visible');
+            logDebugMessage('[document] Instructions box closed by clicking outside.', 'event');
+        }
+    });
+
+    function applyHighlightSpan(range) {
+        const span = document.createElement('span');
+        span.classList.add('highlighted');
+        try { range.surroundContents(span); logDebugMessage('[applyHighlightSpan] Highlight applied.', 'info'); } catch (e) { logDebugMessage(`[applyHighlightSpan] Erro ao aplicar destaque: ${e.message}`, 'error'); }
+    }
+    function removeHighlightSpan(spanElement) {
+        const parent = spanElement.parentNode;
+        while (spanElement.firstChild) parent.insertBefore(spanElement.firstChild, spanElement);
+        parent.removeChild(spanElement);
+        logDebugMessage('[removeHighlightSpan] Highlight removed.', 'info');
+    }
+    function removeAllHighlights() {
+        document.querySelectorAll('.highlighted').forEach(span => removeHighlightSpan(span));
+        logDebugMessage('[removeAllHighlights] All highlights removed.', 'info');
+    }
+
+    function toggleBookList() {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+            livrosElement.classList.toggle('visible-mobile');
+            logDebugMessage(`[toggleBookList] Mobile: Book list visibility toggled to: ${livrosElement.classList.contains('visible-mobile')}`, 'event');
+            if (livrosElement.classList.contains('visible-mobile')) {
+                toggleBooksButton.textContent = 'Fechar Livros';
+            } else {
+                toggleBooksButton.textContent = 'Livros';
+            }
+        }
+    }
+
+    toggleBooksButton.addEventListener('click', toggleBookList);
+
+    document.addEventListener('click', (event) => {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const isClickInsideBookList = livrosElement.contains(event.target);
+        const isClickOnToggleButton = toggleBooksButton.contains(event.target);
+
+        if (isMobile && livrosElement.classList.contains('visible-mobile') && !isClickInsideBookList && !isClickOnToggleButton) {
+            logDebugMessage('[Global Click] Mobile: Clicked outside book list, hiding.', 'event');
+            toggleBookList();
+        }
+    });
+
+    document.addEventListener('mouseup', (event) => {
+        if (event.shiftKey && event.button === 0) {
+            const selection = window.getSelection();
+            if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const firstVerseElement = findAncestorWithClass(range.startContainer, 'verse');
+                const lastVerseElement = findAncestorWithClass(range.endContainer, 'verse');
+                if (firstVerseElement && lastVerseElement && firstVerseElement === lastVerseElement) {
+                    let anyHighlighted = false;
+                    const walker = document.createTreeWalker(firstVerseElement, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+                        { acceptNode: (node) => range.intersectsNode(node) && ((node.nodeType === Node.ELEMENT_NODE && node.classList.contains('highlighted')) || (node.nodeType === Node.TEXT_NODE && findAncestorWithClass(node, 'highlighted'))) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP }, false);
+                    let node; while(node = walker.nextNode()) anyHighlighted = true;
+
+                    if (anyHighlighted) {
+                        const spansToRemove = new Set();
+                        const spanWalker = document.createTreeWalker(firstVerseElement, NodeFilter.SHOW_ELEMENT,
+                            { acceptNode: (node) => node.classList.contains('highlighted') && range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP }, false);
+                        let spanNode; while(spanNode = spanWalker.nextNode()) spansToRemove.add(spanNode);
+                        spansToRemove.forEach(span => removeHighlightSpan(span));
+                        logDebugMessage('[mouseup] Shift+Click: Removed highlight from selected area.', 'event');
+                    } else {
+                        try { applyHighlightSpan(range); logDebugMessage('[mouseup] Shift+Click: Applied highlight to selected area.', 'event'); } catch (e) { logDebugMessage(`[mouseup] Erro ao destacar: ${e.message}`, 'error'); }
+                    }
+                    selection.removeAllRanges(); event.preventDefault();
+                }
+            }
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
+            event.preventDefault(); // Prevent default cut action
+
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+            const range = selection.getRangeAt(0);
+
+            const startVerseElement = findAncestorWithClass(range.startContainer, 'verse');
+            const endVerseElement = findAncestorWithClass(range.endContainer, 'verse');
+
+            if (!startVerseElement || !endVerseElement) return;
+
+            let textToCopy = '';
+
+            if (paragraphMode) {
+                let versesToCopyContent = [];
+                let firstVerseNumberInSelection = null;
+                let lastVerseNumberInSelection = null;
+
+                // Get all paragraph elements involved in the selection
+                const allParagraphElements = Array.from(versiculosDiv.querySelectorAll('.verse.paragraph'));
+                const startParagraphIndex = allParagraphElements.indexOf(startVerseElement);
+                const endParagraphIndex = allParagraphElements.indexOf(endVerseElement);
+
+                // Track if all verses of a single paragraph are selected
+                let allVersesInSingleParagraphSelected = false;
+
+                // If selection is within a single paragraph
+                if (startParagraphIndex === endParagraphIndex) {
+                    const versePartsInCurrentParagraph = Array.from(startVerseElement.querySelectorAll('.verse-content-part'));
+                    let selectedVersePartsCount = 0;
+
+                    versePartsInCurrentParagraph.forEach(versePart => {
+                        const versePartRange = document.createRange();
+                        versePartRange.selectNodeContents(versePart);
+
+                        if (range.intersectsNode(versePart)) {
+                            versesToCopyContent.push(versePart.textContent.trim());
+                            selectedVersePartsCount++;
+
+                            const verseNumberSpan = versePart.querySelector('.verse-number');
+                            if (verseNumberSpan) {
+                                const currentVerseNum = parseInt(verseNumberSpan.textContent);
+                                if (firstVerseNumberInSelection === null || currentVerseNum < firstVerseNumberInSelection) {
+                                    firstVerseNumberInSelection = currentVerseNum;
+                                }
+                                if (lastVerseNumberInSelection === null || currentVerseNum > lastVerseNumberInSelection) {
+                                    lastVerseNumberInSelection = currentVerseNum;
+                                }
+                            }
+                        }
+                    });
+
+                    // Check if all verses in this single paragraph were selected
+                    if (selectedVersePartsCount === versePartsInCurrentParagraph.length) {
+                        allVersesInSingleParagraphSelected = true;
+                    }
+
+                } else { // Selection spans multiple paragraphs
+                    for (let i = startParagraphIndex; i <= endParagraphIndex; i++) {
+                        const currentParagraphElement = allParagraphElements[i];
+                        const versePartsInCurrentParagraph = Array.from(currentParagraphElement.querySelectorAll('.verse-content-part'));
+
+                        versePartsInCurrentParagraph.forEach(versePart => {
+                            const versePartRange = document.createRange();
+                            versePartRange.selectNodeContents(versePart);
+
+                            if (range.intersectsNode(versePart)) {
+                                versesToCopyContent.push(versePart.textContent.trim());
+
+                                const verseNumberSpan = versePart.querySelector('.verse-number');
+                                if (verseNumberSpan) {
+                                    const currentVerseNum = parseInt(verseNumberSpan.textContent);
+                                    if (firstVerseNumberInSelection === null || currentVerseNum < firstVerseNumberInSelection) {
+                                        firstVerseNumberInSelection = currentVerseNum;
+                                    }
+                                    if (lastVerseNumberInSelection === null || currentVerseNum > lastVerseNumberInSelection) {
+                                        lastVerseNumberInSelection = currentVerseNum;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Determine the actual text to copy based on the condition
+                if (allVersesInSingleParagraphSelected && startParagraphIndex === endParagraphIndex) {
+                    // If all verses in a single paragraph are selected, copy the *entire paragraph's* textContent
+                    // This includes all formatting within the paragraph itself.
+                    textToCopy = startVerseElement.textContent.trim(); // Take the full paragraph text
+                    // Need to re-extract the actual verse numbers for the reference if we just took the whole textContent
+                    const verseNumberSpansInFullParagraph = Array.from(startVerseElement.querySelectorAll('.verse-number'));
+                    if (verseNumberSpansInFullParagraph.length > 0) {
+                        firstVerseNumberInSelection = parseInt(verseNumberSpansInFullParagraph[0].textContent);
+                        lastVerseNumberInSelection = parseInt(verseNumberSpansInFullParagraph[verseNumberSpansInFullParagraph.length - 1].textContent);
+                    } else {
+                         // Fallback if no verse numbers found (shouldn't happen with valid structure)
+                         firstVerseNumberInSelection = startVerseElement.dataset.startVerse;
+                         lastVerseNumberInSelection = startVerseElement.dataset.endVerse;
+                    }
+
+                } else {
+                    // Otherwise, copy only the intersected verse parts
+                    textToCopy = versesToCopyContent.join(' ').trim();
+                }
+
+
+                // Determine the reference
+                const firstParagraphData = startVerseElement.dataset;
+                const lastParagraphData = endVerseElement.dataset;
+
+                let chapterToRef = firstParagraphData.chapter;
+                let verseRangeRef = '';
+
+                if (firstVerseNumberInSelection && lastVerseNumberInSelection) {
+                    verseRangeRef = (firstVerseNumberInSelection === lastVerseNumberInSelection) ?
+                                    `${firstVerseNumberInSelection}` :
+                                    `${firstVerseNumberInSelection}-${lastVerseNumberInSelection}`;
+                } else {
+                    // Fallback if no specific verses were found in selection
+                    // This case should ideally not happen if `versesToCopyContent` is not empty.
+                    // It might mean the `verse-content-part` logic failed to find verse numbers.
+                    // As a robust fallback, if no verses are explicitly copied, use the paragraph's overall verse range.
+                    if (firstParagraphData.startVerse && lastParagraphData.endVerse) {
+                         verseRangeRef = (firstParagraphData.startVerse === lastParagraphData.endVerse) ?
+                                         `${firstParagraphData.startVerse}` :
+                                         `${firstParagraphData.startVerse}-${lastParagraphData.endVerse}`;
+                    } else {
+                         verseRangeRef = 'seleção';
+                    }
+                }
+
+                const bookNameRef = firstParagraphData.bookName;
+                let bookAbbreviationRef = bookNameRef;
+                if (currentLanguage === 'pt' && ptBookNameToAbbreviation[normalizeBookName(bookNameRef)]) {
+                    bookAbbreviationRef = ptBookNameToAbbreviation[normalizeBookName(bookNameRef)];
+                } else if (currentLanguage === 'en' && enBookNameToAbbreviation[normalizeBookName(bookNameRef)]) {
+                    bookAbbreviationRef = enBookNameToAbbreviation[normalizeBookName(bookNameRef)];
+                }
+
+                textToCopy = `"${textToCopy}" ${bookAbbreviationRef} ${chapterToRef}:${verseRangeRef}`;
+
+            } else { // Verse Mode (existing logic)
+                let versesToCopy = [];
+                const allContentVerses = Array.from(versiculosDiv.querySelectorAll('.verse'));
+                const startIndex = allContentVerses.indexOf(startVerseElement);
+                const endIndex = allContentVerses.indexOf(endVerseElement);
+
+                if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
+                    versesToCopy = allContentVerses.slice(startIndex, endIndex + 1);
+                } else if (startVerseElement) {
+                    versesToCopy = [startVerseElement];
+                }
+
+                textToCopy = versesToCopy.map(vDiv => {
+                    let text = '';
+                    const verseContentElement = vDiv.querySelector('.verse-content');
+                    if (verseContentElement) {
+                        for (const node of verseContentElement.childNodes) {
+                            if (node.nodeType === Node.TEXT_NODE) {
+                                text += node.textContent;
+                            } else if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('verse-number')) {
+                                text += node.textContent;
+                            }
+                        }
+                    }
+                    return text.trim();
+                }).join(' ');
+
+                const firstVerseData = versesToCopy[0].dataset;
+                const lastVerseData = versesToCopy[versesToCopy.length - 1].dataset;
+
+                const startV = firstVerseData.verseNumber;
+                const endV = lastVerseData.verseNumber;
+                const verseRange = (startV === endV) ? `${startV}` : `${startV}-${endV}`;
+
+                const bookName = firstVerseData.bookName;
+                let bookAbbreviation = bookName;
+                if (currentLanguage === 'pt' && ptBookNameToAbbreviation[normalizeBookName(bookName)]) {
+                    bookAbbreviation = ptBookNameToAbbreviation[normalizeBookName(bookName)];
+                } else if (currentLanguage === 'en' && enBookNameToAbbreviation[normalizeBookName(bookName)]) {
+                    bookAbbreviation = enBookNameToAbbreviation[normalizeBookName(bookName)];
+                }
+
+                textToCopy = `"${textToCopy}" ${bookAbbreviation} ${firstVerseData.chapter}:${verseRange}`;
+            }
+
+            // Use document.execCommand('copy') for better iframe compatibility
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                logDebugMessage(`[keydown] Copied to clipboard using execCommand: "${textToCopy}"`, 'info');
+            } catch (err) {
+                logDebugMessage(`[keydown] Erro ao copiar usando execCommand: ${err.message}`, 'error');
+            } finally {
+                document.body.removeChild(tempTextArea);
+            }
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            removeAllHighlights();
+            if (englishVerseModalOverlay.classList.contains('visible')) {
+                 englishVerseModalOverlay.classList.remove('visible');
+                 logDebugMessage("[keydown] English verse modal closed.", 'event');
+            }
+             if (searchModalOverlay.classList.contains('visible')) {
+                 searchModalOverlay.classList.remove('visible');
+                 logDebugMessage("[keydown] Search modal closed with Escape.", 'event');
+            }
+             if (sinonimosModalOverlay.classList.contains('visible')) {
+                 sinonimosModalOverlay.classList.remove('visible');
+                 logDebugMessage("[keydown] Synonyms modal closed with Escape.", 'event');
+            }
+            if (instructionsBox.classList.contains('visible')) {
+                instructionsBox.classList.remove('visible');
+                logDebugMessage("[keydown] Instructions box closed with Escape.", 'event');
+            }
+        }
+    });
+
+    /**
+     * Waits for a specific book (by its normalized name in the target language) to be present in the target language's data.
+     * @param {string} normalizedBookNameForLookup The normalized book name (e.g., "Genesis", "Tiago", "James") to look for.
+     * @param {string} language The language context ('pt' or 'en') for which to check the data.
+     * @param {number} timeout The maximum time to wait in milliseconds.
+     * @param {number} interval The interval between checks in milliseconds.
+     * @returns {Promise<boolean>} A promise that resolves to true if the book is found, or rejects if a timeout occurs.
+     */
+    async function waitForBookInList(normalizedBookNameForLookup, language, timeout = 5000, interval = 50) {
+        const startTime = Date.now();
+        logDebugMessage(`[waitForBookInList] Called with normalizedBookNameForLookup: "${normalizedBookNameForLookup}", language: "${language}"`, 'debug');
+
+        return new Promise((resolve, reject) => {
+            const checkInterval = setInterval(() => {
+                let currentBibleDataForCheck = (language === 'pt') ? bibliaData : englishBibliaData;
+                let bookListForCheck = [];
+                if (currentBibleDataForCheck && currentBibleDataForCheck.length > 0) {
+                    bookListForCheck = [...new Set(currentBibleDataForCheck.map(v => v.book_name))]; // These are already normalized for their language
+                }
+
+                logDebugMessage(`[waitForBookInList - check] Language param: "${language}". Checking for book normalized: "${normalizedBookNameForLookup}". Data length for param language: ${currentBibleDataForCheck.length}. Derived book list (first 5): ${JSON.stringify(bookListForCheck.slice(0, 5))}... (length: ${bookListForCheck.length}). Full derived book list: ${JSON.stringify(bookListForCheck)}`, 'debug');
+
+                if (currentBibleDataForCheck && currentBibleDataForCheck.length > 0 && bookListForCheck.includes(normalizedBookNameForLookup)) {
+                    clearInterval(checkInterval);
+                    logDebugMessage(`[waitForBookInList] Book "${normalizedBookNameForLookup}" found in derived book list for ${language} after ${Date.now() - startTime}ms.`, 'success');
+                    resolve(true);
+                } else if (Date.now() - startTime > timeout) {
+                    clearInterval(checkInterval);
+                    logDebugMessage(`[waitForBookInList] Timeout waiting for book "${normalizedBookNameForLookup}" in derived book list for ${language}. Current 'livros' array (global, original names): ${JSON.stringify(livros.slice(0, 5))}... (length: ${livros.length}). Full global 'livros' array: ${JSON.stringify(livros)}`, 'error'); // More detailed error log
+                    logDebugMessage(`[waitForBookInList] Derived book list for ${language} (normalized, first 5): ${JSON.stringify(bookListForCheck.slice(0, 5))}... (length: ${bookListForCheck.length}). Full derived book list: ${JSON.stringify(bookListForCheck)}`, 'error'); // More detailed error log
+                    reject(new Error(`Timeout waiting for book "${normalizedBookNameForLookup}" in list.`));
+                }
+            }, interval);
+        });
+    }
+
+    languageToggleButton.addEventListener('click', async () => {
+        if (isLanguageToggling) {
+            logDebugMessage('[languageToggleButton] Already toggling language, ignoring click.', 'warn');
+            return;
+        }
+        isLanguageToggling = true; // Set flag
+        logDebugMessage('--- Language Toggle Start ---', 'event');
+        languageToggleButton.disabled = true; // Disable the button immediately
+
+        // livroAtual holds the original accented name from the previous language
+        logDebugMessage(`[languageToggleButton] START OF TOGGLE: livroAtual (original name) = "${livroAtual}"`, 'debug');
+        logDebugMessage(`[languageToggleButton] START OF TOGGLE: activeTabId = "${activeTabId}"`, 'debug');
+
+        let savedLivroAtualOriginalName = livroAtual ? livroAtual.trim() : null;
+        let savedChapter = livroState[livroAtual]?.currentChapter;
+        let savedScrollTop = conteudoDiv.scrollTop;
+        let savedParagraphMode = paragraphMode;
+
+        const previousLanguage = currentLanguage;
+        const targetLanguage = (currentLanguage === 'pt') ? 'en' : 'pt';
+
+        logDebugMessage(`[languageToggleButton] DEBUG: savedLivroAtualOriginalName: "${savedLivroAtualOriginalName}"`, 'debug');
+        logDebugMessage(`[languageToggleButton] DEBUG: previousLanguage: "${previousLanguage}"`, 'debug');
+        logDebugMessage(`[languageToggleButton] DEBUG: targetLanguage: "${targetLanguage}"`, 'debug');
+
+        // Translate book names in abertoTabs (which store original names)
+        abertoTabs.forEach(tab => {
+            if (previousLanguage === 'pt') {
+                tab.book = originalPtBookNameToOriginalEnBookName[tab.book] || tab.book;
+            } else {
+                tab.book = originalEnBookNameToOriginalPtBookName[tab.book] || tab.book;
+            }
+        });
+        logDebugMessage(`[languageToggleButton] abiertoTabs after translation (original names): ${JSON.stringify(abertoTabs)}`, 'debug');
+
+        // Translate keys in livroState (which are original names)
+        const newLivroState = {};
+        for (const bookName in livroState) {
+            let translatedBookNameOriginal;
+            if (previousLanguage === 'pt') {
+                translatedBookNameOriginal = originalPtBookNameToOriginalEnBookName[bookName] || bookName;
+            } else { // previousLanguage === 'en'
+                // This is the problematic path: EN -> PT
+                translatedBookNameOriginal = originalEnBookNameToOriginalPtBookName[bookName] || bookName;
+                logDebugMessage(`[languageToggleButton] DEBUG: EN->PT translation for "${bookName}" resulted in "${translatedBookNameOriginal}"`, 'debug');
+                // Add a direct check for the key's existence in the map
+                if (!(bookName in originalEnBookNameToOriginalPtBookName)) {
+                    logDebugMessage(`[languageToggleButton] CRITICAL: "${bookName}" NOT FOUND as a key in originalEnBookNameToOriginalPtBookName!`, 'critical');
+                    logDebugMessage(`[languageToggleButton] Keys in originalEnBookNameToOriginalPtBookName (first 50): ${Object.keys(originalEnBookNameToOriginalPtBookName).slice(0, 50).join(', ')}...`, 'critical');
+                }
+            }
+            // If translation fails, use the original name from before translation
+            if (!translatedBookNameOriginal) {
+                translatedBookNameOriginal = bookName;
+                logDebugMessage(`[languageToggleButton] Translation for "${bookName}" failed or returned undefined. Using original as fallback.`, 'warn');
+            }
+            newLivroState[translatedBookNameOriginal] = { ...livroState[bookName] };
+        }
+        // Clear old state and assign new translated state
+        for (const key in livroState) { delete livroState[key]; }
+        Object.assign(livroState, newLivroState);
+        logDebugMessage(`[languageToggleButton] livroState after translation (original names as keys): ${JSON.stringify(livroState)}`, 'debug');
+
+
+        currentLanguage = targetLanguage;
+        languageToggleButton.textContent = (currentLanguage === 'pt') ? 'EN' : 'PT';
+        logDebugMessage(`[languageToggleButton] Idioma alterado para: ${currentLanguage}`, 'info');
+
+        updateLivrosList(currentLanguage); // This populates 'livros' based on 'currentLanguage' (the NEW one) and uses original_book_name
+        logDebugMessage(`[languageToggleButton] 'livros' array updated immediately after language change. Current 'livros' count: ${livros.length}`, 'debug');
+
+
+        // Restore paragraph mode state
+        paragraphMode = savedParagraphMode;
+        modeToggleButton.textContent = (currentLanguage === 'pt') ? (paragraphMode ? 'Modo Versículo' : 'Modo Parágrafo') : (paragraphMode ? 'Verse Mode' : 'Paragraph Mode');
+        logDebugMessage(`[languageToggleButton] Paragraph mode button text updated.`, 'debug');
+
+        // Update UI texts (placeholders, button texts, titles)
+        searchInput.placeholder = currentLanguage === 'pt' ? "Buscar na Bíblia..." : "Search the Bible...";
+        modalSearchInput.placeholder = currentLanguage === 'pt' ? "Nova busca..." : "New search...";
+        searchButton.textContent = (currentLanguage === 'pt') ? 'Buscar' : 'Search';
+        modalSearchButton.textContent = (currentLanguage === 'pt') ? 'Buscar' : 'Search';
+
+        filterNtButton.textContent = currentLanguage === 'pt' ? 'No Novo Testamento' : 'New Testament';
+        filterOtButton.textContent = currentLanguage === 'pt' ? 'No Antigo Testamento' : 'Old Testament';
+        filterAllButton.textContent = currentLanguage === 'pt' ? 'Na Bíblia Toda' : 'Entire Bible';
+        const favoritosTitle = document.querySelector('#favoritos h4');
+        if (favoritosTitle) {
+            favoritosTitle.textContent = currentLanguage === 'pt' ? 'Abertos' : 'Open';
+        }
+
+        copyrightInfoDiv.textContent = (currentLanguage === 'pt') ? 'Bíblia King James 1611 - Acesse bkjfiel.com.br' : 'King James Bible - biblehub.com/kjv/genesis/1.htm';
+
+        filterOtBooksButton.textContent = currentLanguage === 'pt' ? 'AT' : 'OT';
+        filterNtBooksButton.textContent = 'NT';
+
+        // Re-display books list for the new language
+        exibirLivros(currentBookFilter, currentLanguage);
+
+        // Update open tabs panel for desktop
+        let isDesktop = window.matchMedia('(min-width: 769px)').matches; // Alterado de const para let
+        if (isDesktop) {
+           atualizarPainelAbertos();
+        }
+
+        // NOVO: Chame updateMainHeading para garantir que o título principal seja atualizado
+        updateMainHeading(null, null); // Reset para o título padrão antes de tentar reabrir o livro
+
+        let translatedSavedLivroAtualOriginalName = null;
+        if (savedLivroAtualOriginalName) {
+            logDebugMessage(`[languageToggleButton] DEBUG: savedLivroAtualOriginalName before translation attempt: "${savedLivroAtualOriginalName}" (length: ${savedLivroAtualOriginalName.length})`, 'debug');
+            if (previousLanguage === 'pt') {
+                translatedSavedLivroAtualOriginalName = originalPtBookNameToOriginalEnBookName[savedLivroAtualOriginalName];
+            } else { // previousLanguage === 'en'
+                // This is the problematic path: EN -> PT
+                translatedSavedLivroAtualOriginalName = originalEnBookNameToOriginalPtBookName[savedLivroAtualOriginalName];
+                logDebugMessage(`[languageToggleButton] DEBUG: Result of originalEnBookNameToOriginalPtBookName["${savedLivroAtualOriginalName}"]: "${translatedSavedLivroAtualOriginalName}"`, 'debug');
+                // Add a direct check for the key's existence in the map
+                if (!(savedLivroAtualOriginalName in originalEnBookNameToOriginalPtBookName)) {
+                    logDebugMessage(`[languageToggleButton] CRITICAL: "${savedLivroAtualOriginalName}" NOT FOUND as a key in originalEnBookNameToOriginalPtBookName!`, 'critical');
+                    logDebugMessage(`[languageToggleButton] Keys in originalEnBookNameToOriginalPtBookName (first 50): ${Object.keys(originalEnBookNameToOriginalPtBookName).slice(0, 50).join(', ')}...`, 'critical');
+                }
+            }
+            // If translation fails, use the original name from before translation
+            if (!translatedSavedLivroAtualOriginalName) {
+                translatedSavedLivroAtualOriginalName = savedLivroAtualOriginalName;
+                logDebugMessage(`[languageToggleButton] Translation for "${savedLivroAtualOriginalName}" failed or returned undefined. Using original as fallback.`, 'warn');
+            }
+        } else {
+            logDebugMessage(`[languageToggleButton] No savedLivroAtual to translate.`, 'debug');
+        }
+
+        // For waitForBookInList, we need the normalized name of the translated book
+        const normalizedTranslatedSavedLivroAtual = translatedSavedLivroAtualOriginalName ? normalizeBookName(translatedSavedLivroAtualOriginalName.trim()) : null; // Trim here
+
+        logDebugMessage(`[languageToggleButton] BEFORE waitForBookInList: normalizedBookNameForLookup="${normalizedTranslatedSavedLivroAtual}", currentLanguage="${currentLanguage}".`, 'critical');
+
+        try {
+            if (translatedSavedLivroAtualOriginalName) {
+                // Increased delay to ensure data and UI are settled
+                await new Promise(resolve => setTimeout(resolve, 200));
+                // Wait for the normalized version of the translated book to be in the list of normalized book names
+                await waitForBookInList(normalizedTranslatedSavedLivroAtual, currentLanguage, 10000, 100); // Increased timeout and interval
+                logDebugMessage(`[languageToggleButton] Reabrindo livro salvo no centro: ${translatedSavedLivroAtualOriginalName} Capítulo: ${savedChapter}`, 'info');
+                const targetTab = abertoTabs.find(tab => tab.book === translatedSavedLivroAtualOriginalName && tab.chapter === savedChapter);
+                await abrirLivroNoCentro(translatedSavedLivroAtualOriginalName, savedChapter, 'language-toggle', targetTab ? targetTab.id : null, true, null);
+
+                setTimeout(() => {
+                    if (conteudoDiv) {
+                        conteudoDiv.scrollTop = savedScrollTop;
+                        logDebugMessage(`[languageToggleButton] Restored scroll position for re-opened book: ${savedScrollTop}`, 'info');
+                    }
+                }, 100);
+            } else {
+                logDebugMessage(`[languageToggleButton] Livro salvo (${savedLivroAtualOriginalName} -> ${translatedSavedLivroAtualOriginalName}) não encontrado ou não traduzível. Exibindo mensagem inicial.`, 'warn');
+                initialMessageDiv.classList.remove('hidden');
+                capitulosContainer.classList.add('hidden');
+                versiculosDiv.classList.add('hidden'); // Use global versiculosDiv
+                livroAtual = null;
+                activeTabId = null;
+                languageToggleButton.disabled = false;
+            }
+        } catch (error) {
+            logDebugMessage(`[languageToggleButton] Error during book re-opening after language toggle: ${error.message}`, 'error');
+            initialMessageDiv.classList.remove('hidden');
+            capitulosContainer.classList.add('hidden');
+            versiculosDiv.classList.add('hidden'); // Use global versiculosDiv
+            livroAtual = null;
+            activeTabId = null;
+            languageToggleButton.disabled = false;
+        } finally {
+            isLanguageToggling = false;
+            logDebugMessage('--- Language Toggle End ---', 'event');
+        }
+    });
+
+    function findAncestorWithClass(element, className) {
+        let currentNode = element;
+        if (currentNode && currentNode.nodeType === Node.TEXT_NODE) currentNode = currentNode.parentNode; // Corrected to parentNode
+        while (currentNode && currentNode.nodeType === Node.ELEMENT_NODE && !currentNode.classList.contains(className)) {
+            currentNode = currentNode.parentNode; // Corrected to parentNode
+        }
+        return (currentNode && currentNode.nodeType === Node.ELEMENT_NODE && currentNode.classList.contains(className)) ? currentNode : null;
+    }
+
+    /**
+     * Updates the instructions text in the help box based on the current language.
+     */
+    function updateInstructionsText() {
+        let title, shortcuts;
+        if (currentLanguage === 'pt') {
+            title = 'Atalhos do Site:';
+            shortcuts = [
+                '<strong>Ctrl + Clique (ou Cmd + Clique no Mac):</strong> Clique em uma palavra para buscar seu sinônimo (em Português) ou significado (em Inglês, via Etymonline.com).',
+                '<strong>Duplo Clique:</strong> Clique em um livro na lista de livros para abri-lo no painel "Abertos" (painel da direita). Clique duplo em um versículo (no modo versículo) ou parágrafo (no modo parágrafo) para ver a versão em Inglês (KJV).',
+                '<strong>Ctrl + X (ou Cmd + X no Mac):</strong> Selecione um trecho de texto e use Ctrl + X para copiar o versículo/versículos inteiro(s), sem precisar selecionar a porção completa - ele já virá com a referência.',
+                '<strong>Shift + Seleção (arrastar):</strong> Selecione um trecho de texto e use Shift + Clique para marcar/desmarcar o texto.',
+                '<strong>Esc:</strong> Pressione Esc para fechar qualquer modal (busca, versículo em inglês, sinônimos) ou para remover todas as marcações de texto.',
+                '<strong>Botão de Seta para a Direita (no painel de livros):</strong> Adiciona o livro e capítulo atualmente abertos no painel central ao painel "Abertos" como uma nova aba.'
+            ];
+        } else { // English
+            title = 'Site Shortcuts:';
+            shortcuts = [
+                '<strong>Ctrl + Click (or Cmd + Click on Mac):</strong> Click on a word to search for its synonym (in Portuguese) or meaning (in English, via Etymonline.com).',
+                '<strong>Double Click:</strong> Double click on a book in the book list to open it in the "Open" panel (right panel). Double click on a verse (in verse mode) or paragraph (in paragraph mode) to see the English (KJV) version.',
+                '<strong>Ctrl + X (or Cmd + X on Mac):</strong> Select a text passage and use Ctrl + X to copy the entire verse(s), without needing to select the complete portion - it will already come with the reference.',
+                '<strong>Shift + Selection (drag):</strong> Select a text passage and use Shift + Click to highlight/unhighlight the text.',
+                '<strong>Esc:</strong> Press Esc to close any modal (search, English verse, synonyms) or to remove all text highlights.',
+                '<strong>Right Arrow Button (in books panel):</strong> Adds the currently open book and chapter in the central panel to the "Open" panel as a new tab.'
+            ];
+        }
+
+        let htmlContent = `<h5>${title}</h5><ul>`;
+        shortcuts.forEach(item => {
+            htmlContent += `<li>${item}</li>`;
+        });
+        htmlContent += `</ul>`;
+        instructionsBox.innerHTML = htmlContent;
+        logDebugMessage('[updateInstructionsText] Instructions text updated.', 'info');
+    }
+
+    /**
+     * Updates the main heading of the application to show the current book and chapter.
+     * @param {string|null} book The current book name. If null, resets to default title.
+     * @param {number|null} chapter The current chapter number. If null, resets to default title.
+     */
+    function updateMainHeading(book, chapter) {
+        if (book && chapter) {
+            mainHeading.textContent = `${book} ${chapter}`; // Removido "Capítulo"
+            mainHeading.classList.add('text-center');
+            mainHeading.classList.remove('md:text-left');
+        } else {
+            mainHeading.textContent = ''; // Define como vazio quando nenhum livro é selecionado
+            mainHeading.classList.remove('text-center');
+            mainHeading.classList.add('md:text-left');
+        }
+        logDebugMessage(`[updateMainHeading] Main heading updated to: "${mainHeading.textContent}"`, 'info');
+    }
+
+    // Inicialização
+    // A inicialização agora é feita em DOMContentLoaded de forma assíncrona.
+  </script>
+
+</body>
+</html>
